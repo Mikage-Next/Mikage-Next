@@ -228,21 +228,21 @@ enum AboutCredits {
         let licenseURL: URL
     }
 
-    static let sourceURL = URL(string: "https://github.com/itsCheney/Mikage-Next")!
+    static let sourceURL = URL(string: "https://github.com/Mikage-Next/Mikage-Next")!
 
-    static let app = item("Mikage", "Mikage", "GPL-3.0+", "https://github.com/itsCheney/Mikage-Next/blob/HEAD/LICENSE")
+    static let app = item("Mikage", "Mikage", "GPL-3.0+", "https://github.com/Mikage-Next/Mikage-Next/blob/HEAD/LICENSE")
 
     static let engines: [Item] = [
-        item("KiriKiri", "KRKRSDL3", "BSD-style", "https://github.com/itsCheney/krkrsdl3/blob/HEAD/LICENSE"),
-        item("ONScripter", "ONScripter Yuri", "GPL-2.0+", "https://github.com/itsCheney/OnscripterYuri/blob/HEAD/LICENSE"),
-        item("Artemis", "openArtemis", "MIT", "https://github.com/itsCheney/openartemis/blob/HEAD/LICENSE"),
+        item("KiriKiri", "KRKRSDL3", "BSD-style", "https://github.com/Mikage-Next/krkrsdl3/blob/HEAD/LICENSE"),
+        item("ONScripter", "ONScripter Yuri", "GPL-2.0+", "https://github.com/Mikage-Next/OnscripterYuri/blob/HEAD/LICENSE"),
+        item("Artemis", "openArtemis", "MIT", "https://github.com/Mikage-Next/openartemis/blob/HEAD/LICENSE"),
         item("Ren’Py", "Ren’Py 8", "MIT", "https://www.renpy.org/doc/html/license.html"),
-        item("SiglusEngine", "siglus_rs", "MPL-2.0", "https://github.com/itsCheney/siglus_rs/blob/HEAD/LICENSE-MPL-2.0"),
-        item("FVP", "rfvp", "MPL-2.0", "https://github.com/itsCheney/rfvp/blob/HEAD/LICENSE"),
+        item("SiglusEngine", "siglus_rs", "MPL-2.0", "https://github.com/Mikage-Next/MikageSiglus/blob/HEAD/LICENSE-MPL-2.0"),
+        item("FVP", "rfvp", "MPL-2.0", "https://github.com/Mikage-Next/MikageFVP/blob/HEAD/LICENSE"),
         item("BGI", "ethornell-rs", "MPL-2.0", "https://www.mozilla.org/MPL/2.0/"),
-        item("YU-RIS", "MikageYURIS", "GPL-3.0+", "https://github.com/itsCheney/MikageYURIS/blob/HEAD/LICENSE"),
-        item("CMVS", "MikageCMVS", "MIT / Apache-2.0", "https://github.com/itsCheney/MikageCMVS/blob/HEAD/LICENSE-MIT"),
-        item("SoftPAL", "MikageSoftPAL", "MPL-2.0", "https://github.com/itsCheney/MikageSoftPAL/blob/HEAD/LICENSE-MPL-2.0"),
+        item("YU-RIS", "MikageYURIS", "GPL-3.0+", "https://github.com/Mikage-Next/MikageYURIS/blob/HEAD/LICENSE"),
+        item("CMVS", "MikageCMVS", "MIT / Apache-2.0", "https://github.com/Mikage-Next/MikageCMVS/blob/HEAD/LICENSE-MIT"),
+        item("SoftPAL", "MikageSoftPAL", "MPL-2.0", "https://github.com/Mikage-Next/MikageSoftPAL/blob/HEAD/LICENSE-MPL-2.0"),
     ]
 
     static let libraries: [Item] = [

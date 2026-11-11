@@ -2,7 +2,7 @@
 
 简体中文 · [English](README.en.md)
 
-Mikage Next 是一款适用于 iPhone 和 iPad 的视觉小说播放器。所有游戏集中在同一个游戏库里，每个游戏用它原本的引擎运行。目前通过内嵌的 [KRKRSDL3](https://github.com/itsCheney/krkrsdl3) 支持 KiriKiri（吉里吉里，KAG / TJS）游戏，通过 [ONScripter Yuri](https://github.com/YuriSizuku/OnscripterYuri) 支持 ONScripter 游戏，通过 [Ren’Py 8](https://github.com/itsCheney/renpy) 本身支持 Ren’Py 游戏。Artemis、SiglusEngine、FVP、BGI、YU-RIS、CMVS 和 SoftPAL 游戏分别通过 [openArtemis](https://github.com/itsCheney/openartemis)、[siglus_rs](https://github.com/itsCheney/siglus_rs)、[rfvp](https://github.com/itsCheney/rfvp)、[ethornell-rs](https://github.com/itsCheney/ethornell-rs)、[MikageYURIS](https://github.com/itsCheney/MikageYURIS)、[MikageCMVS](https://github.com/itsCheney/MikageCMVS) 和 [MikageSoftPAL](https://github.com/itsCheney/MikageSoftPAL) 试验性地运行。
+Mikage Next 是一款适用于 iPhone 和 iPad 的视觉小说播放器。所有游戏集中在同一个游戏库里，每个游戏用它原本的引擎运行。目前通过内嵌的 [KRKRSDL3](https://github.com/Mikage-Next/krkrsdl3) 支持 KiriKiri（吉里吉里，KAG / TJS）游戏，通过 [ONScripter Yuri](https://github.com/YuriSizuku/OnscripterYuri) 支持 ONScripter 游戏，通过 [Ren’Py 8](https://github.com/Mikage-Next/renpy) 本身支持 Ren’Py 游戏。Artemis、SiglusEngine、FVP、BGI、YU-RIS、CMVS 和 SoftPAL 游戏分别通过 [openArtemis](https://github.com/Mikage-Next/openartemis)、[siglus_rs](https://github.com/Mikage-Next/MikageSiglus)、[rfvp](https://github.com/Mikage-Next/MikageFVP)、[ethornell-rs](https://github.com/Mikage-Next/MikageBGI)、[MikageYURIS](https://github.com/Mikage-Next/MikageYURIS)、[MikageCMVS](https://github.com/Mikage-Next/MikageCMVS) 和 [MikageSoftPAL](https://github.com/Mikage-Next/MikageSoftPAL) 试验性地运行。
 
 Mikage 不附带任何游戏内容，请使用你自己拥有的游戏。
 
@@ -69,7 +69,7 @@ ZIP 导入和 Wi-Fi 上传暂未实现。后续引擎的接入计划见 [docs/PH
 需要 macOS 和 Xcode 26、CMake、XcodeGen、Git。vcpkg 会由运行时构建脚本自动准备。首次构建需要编译 FFmpeg、SDL3 等依赖，耗时较长。
 
 ```sh
-git clone --recursive https://github.com/itsCheney/Mikage-Next.git
+git clone --recursive https://github.com/Mikage-Next/Mikage-Next.git
 cd Mikage-Next
 brew install cmake xcodegen
 bash scripts/fetch-metalangle-ios.sh  # 下载 build/MetalANGLE.xcframework（基于 Metal 的 OpenGL ES）
@@ -98,7 +98,7 @@ open Mikage.xcodeproj
 - `beta`：先于 `main` 的测试版。
 - `runtime-dev`：开发分支。新的引擎和运行时改动先合入这里，再合并到 `beta`，`beta` 再合并到 `main`。
 
-每个分支从 [krkrsdl3_build](https://github.com/itsCheney/krkrsdl3_build) 和 [krkrsdl3](https://github.com/itsCheney/krkrsdl3) 各自对应的分支固定 KiriKiri 运行时：`main` 用 `mikage`，`beta` 用 `mikage-beta`，`runtime-dev` 用 `runtime-dev`。其他引擎的子模块在所有分支上都跟随各自的 `mikage` 分支。
+每个分支从 [krkrsdl3_build](https://github.com/Mikage-Next/krkrsdl3_build) 和 [krkrsdl3](https://github.com/Mikage-Next/krkrsdl3) 各自对应的分支固定 KiriKiri 运行时：`main` 用 `mikage`，`beta` 用 `mikage-beta`，`runtime-dev` 用 `runtime-dev`。其他引擎的子模块在所有分支上都跟随各自的 `mikage` 分支。
 
 ## 目录结构
 
@@ -107,16 +107,16 @@ open Mikage.xcodeproj
 | `App/` | SwiftUI App：游戏库、游戏详情、播放器、设置、存储空间、Bangumi/VNDB 关联、字符串目录 |
 | `App/Engine/` | 在 App 内承载 KiriKiri、ONScripter、Artemis、Ren’Py、SiglusEngine、FVP、BGI、YU-RIS、CMVS 和 SoftPAL 运行时的桥接层；`SDLHost/` 是各 SDL 引擎共用的部分（横屏、窗口切换、逐帧驱动、前后台） |
 | `Sources/VNCore/` | Swift 包：游戏库扫描与导入、路径安全、Bangumi 和 VNDB 客户端、条目匹配 |
-| `Engine/KRKRRuntime/` | 以子模块固定版本的 KRKRSDL3 运行时（[krkrsdl3_build](https://github.com/itsCheney/krkrsdl3_build) → [krkrsdl3](https://github.com/itsCheney/krkrsdl3)） |
-| `Engine/ONSRuntime/` | 以子模块固定版本的 ONScripter Yuri（[Mikage 分支](https://github.com/itsCheney/OnscripterYuri)），经 sdl2-compat 运行在共享的 SDL3 上 |
-| `Engine/ArtemisRuntime/` | 以子模块固定版本的 openArtemis（[Mikage 分支](https://github.com/itsCheney/openartemis)），直接运行在共享的 SDL3 上 |
-| `Engine/RenPyRuntime/` | 以子模块固定版本的 Ren’Py 8（[mikage 分支](https://github.com/itsCheney/renpy)），连同 CPython 3.12 运行在共享的 SDL3 上，OpenGL ES 由 MetalANGLE 提供 |
-| `Engine/SiglusRuntime/` | 以子模块固定版本的 siglus_rs（[mikage 分支](https://github.com/itsCheney/siglus_rs)），Rust 实现，用 wgpu 直接渲染到 Metal，不使用 SDL |
-| `Engine/RFVPRuntime/` | 以子模块固定版本的 rfvp（[mikage 分支](https://github.com/itsCheney/rfvp)），Rust 实现，用 wgpu 直接渲染到 Metal，不使用 SDL |
-| `Engine/EthornellRuntime/` | 以子模块固定版本的 ethornell-rs（[mikage 分支](https://github.com/itsCheney/ethornell-rs)），Rust 实现，用 wgpu 直接渲染到 Metal，不使用 SDL |
-| `Engine/YurisRuntime/` | 以子模块固定版本的 MikageYURIS（[mikage 分支](https://github.com/itsCheney/MikageYURIS)），Rust 实现的 YU-RIS 运行时，用 wgpu 直接渲染到 Metal，不使用 SDL |
-| `Engine/CMVSRuntime/` | 以子模块固定版本的 MikageCMVS（[mikage 分支](https://github.com/itsCheney/MikageCMVS)，cmvs-rs 的分支），Rust 实现的 CMVS 运行时，用 wgpu 直接渲染到 Metal，不使用 SDL |
-| `Engine/SoftPALRuntime/` | 以子模块固定版本的 MikageSoftPAL（[mikage 分支](https://github.com/itsCheney/MikageSoftPAL)，sena-rs 的分支），Rust 实现的 SoftPAL 运行时，用 wgpu 直接渲染到 Metal，不使用 SDL |
+| `Engine/KRKRRuntime/` | 以子模块固定版本的 KRKRSDL3 运行时（[krkrsdl3_build](https://github.com/Mikage-Next/krkrsdl3_build) → [krkrsdl3](https://github.com/Mikage-Next/krkrsdl3)） |
+| `Engine/ONSRuntime/` | 以子模块固定版本的 ONScripter Yuri（[Mikage 分支](https://github.com/Mikage-Next/OnscripterYuri)），经 sdl2-compat 运行在共享的 SDL3 上 |
+| `Engine/ArtemisRuntime/` | 以子模块固定版本的 openArtemis（[Mikage 分支](https://github.com/Mikage-Next/openartemis)），直接运行在共享的 SDL3 上 |
+| `Engine/RenPyRuntime/` | 以子模块固定版本的 Ren’Py 8（[mikage 分支](https://github.com/Mikage-Next/renpy)），连同 CPython 3.12 运行在共享的 SDL3 上，OpenGL ES 由 MetalANGLE 提供 |
+| `Engine/SiglusRuntime/` | 以子模块固定版本的 siglus_rs（[mikage 分支](https://github.com/Mikage-Next/MikageSiglus)），Rust 实现，用 wgpu 直接渲染到 Metal，不使用 SDL |
+| `Engine/RFVPRuntime/` | 以子模块固定版本的 rfvp（[mikage 分支](https://github.com/Mikage-Next/MikageFVP)），Rust 实现，用 wgpu 直接渲染到 Metal，不使用 SDL |
+| `Engine/EthornellRuntime/` | 以子模块固定版本的 ethornell-rs（[mikage 分支](https://github.com/Mikage-Next/MikageBGI)），Rust 实现，用 wgpu 直接渲染到 Metal，不使用 SDL |
+| `Engine/YurisRuntime/` | 以子模块固定版本的 MikageYURIS（[mikage 分支](https://github.com/Mikage-Next/MikageYURIS)），Rust 实现的 YU-RIS 运行时，用 wgpu 直接渲染到 Metal，不使用 SDL |
+| `Engine/CMVSRuntime/` | 以子模块固定版本的 MikageCMVS（[mikage 分支](https://github.com/Mikage-Next/MikageCMVS)，cmvs-rs 的分支），Rust 实现的 CMVS 运行时，用 wgpu 直接渲染到 Metal，不使用 SDL |
+| `Engine/SoftPALRuntime/` | 以子模块固定版本的 MikageSoftPAL（[mikage 分支](https://github.com/Mikage-Next/MikageSoftPAL)，sena-rs 的分支），Rust 实现的 SoftPAL 运行时，用 wgpu 直接渲染到 Metal，不使用 SDL |
 | `Engine/SDL3/patches/`、`Engine/MetalANGLE/` | 让共享 SDL3 的 OpenGL ES 窗口使用 MetalANGLE 而非 Apple 已弃用的 OpenGLES 的补丁，以及 MetalANGLE 的许可证 |
 | `Engine/MikageSDLHost/` | 基于 SDL 主回调的引擎运行时编译进去的共享宿主层（KiriKiri 和 Artemis）：驱动 SDL 主回调、停止与前后台、音频会话、每局之间的复位 |
 | `Tests/` | Swift 单元测试和原生运行时测试 |

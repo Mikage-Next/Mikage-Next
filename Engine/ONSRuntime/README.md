@@ -4,8 +4,8 @@ Mikage Next runs ONScripter games with [ONScripter Yuri](https://github.com/Yuri
 
 Pinned inputs:
 
-- `Source/` submodule: `6ad8c87187676b326247892f1211f6aae817b6a7` (`itsCheney/OnscripterYuri`, branch `mikage`, based on upstream `master`)
-- sdl2-compat: `d02db3d9f09ef18f0adb05981ebd1760b9454bf1` (`itsCheney/sdl2-compat`, branch `mikage`, based on `release-2.32.74`)
+- `Source/` submodule: `b1c2158da5dacdd434b1451e62faa591cbfd20cc` (`Mikage-Next/OnscripterYuri`, branch `mikage`, based on upstream `master`)
+- sdl2-compat: `c77e1e0e27a25b01d8137959fd58a1852bd1cacd` (`Mikage-Next/sdl2-compat`, branch `mikage`, based on `release-2.32.74`)
 - FFmpeg 7.1.2 for movies: the static libraries `scripts/build-krkr-ios.sh` installs with vcpkg for KiriKiri (`build/krkr-vcpkg-installed`). `scripts/build-ons-ios.sh` installs the same vcpkg manifest itself when they are missing.
 - [GeneralUser GS](https://github.com/mrbumpy409/GeneralUser-GS) v2.0.3 SoundFont for MIDI music, downloaded at commit `684543d5e5efaef08d02be50dcda8d552478fa60` and checked by SHA-256
 - SDL_image `release-2.8.12`, SDL_mixer `release-2.8.2`, SDL_ttf `release-2.24.0` and Lua `v5.4.7`, pinned by commit in `Source/src/onsyuri_mikage/CMakeLists.txt`

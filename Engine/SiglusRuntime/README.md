@@ -4,7 +4,7 @@ Mikage Next runs SiglusEngine games with [siglus_rs](https://github.com/xmoezzz/
 
 Pinned input:
 
-- `Source/` submodule: `itsCheney/siglus_rs`, branch `mikage`, based on the upstream `1.0.0` tag. The branch drops the Microsoft MS PGothic font upstream embeds (it may not be redistributed); the host registers system fonts instead. It also adds the `siglus_mikage_*` calls in `crates/siglus_scene_vm/src/mikage_host.rs`.
+- `Source/` submodule: `Mikage-Next/MikageSiglus`, branch `mikage`, based on the upstream `1.0.0` tag. The branch drops the Microsoft MS PGothic font upstream embeds (it may not be redistributed); the host registers system fonts instead. It also adds the `siglus_mikage_*` calls in `crates/siglus_scene_vm/src/mikage_host.rs`.
 
 siglus_rs isn't an SDL program. It renders with wgpu into a `CAMetalLayer` and plays audio through kira (CoreAudio). `scripts/build-siglus-ios.sh` builds the `siglus_scene_vm` crate as a dynamic library for the device and Apple Silicon simulator, wraps each in `SiglusRuntime.framework` with the C header (`siglus.h`) and a module map, checks the exports, then creates `build/SiglusRuntime.xcframework`. It needs Rust with the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets, nothing else from the other engines.
 

@@ -4,7 +4,7 @@ Mikage Next runs Ren'Py games with Ren'Py 8 itself, built for iOS as an embeddab
 
 Pinned inputs:
 
-- `Source/` submodule: `itsCheney/renpy`, branch `mikage`, based on Ren'Py `master` (8.6, the first Ren'Py on SDL3). Everything Mikage adds is in `Source/mikage` (see its README); the only other change is `src/renpygl.h`, which takes OpenGL ES types from MetalANGLE.
+- `Source/` submodule: `Mikage-Next/renpy`, branch `mikage`, based on Ren'Py `master` (8.6, the first Ren'Py on SDL3). Everything Mikage adds is in `Source/mikage` (see its README); the only other change is `src/renpygl.h`, which takes OpenGL ES types from MetalANGLE.
 - CPython 3.12.8, downloaded and checksummed by `scripts/build-renpy-ios.sh`, cross-built for iOS the way renpy-build does it (patches in `Source/mikage/python`). Static, with the standard library's C modules built in; no `ssl`.
 - Cython 3.3.0 and pyobjus (kivy/pyobjus `b61d65f`, renpy-build's commit) on the host, to generate C for Ren'Py's modules and pyobjus.
 - SDL3: the app's shared `build/SDL3.xcframework`. Its OpenGL ES windows run on MetalANGLE (`scripts/fetch-metalangle-ios.sh`, the binary renpy-build ships, BSD licensed; see `Engine/MetalANGLE/LICENSE`), never on Apple's deprecated OpenGLES framework.

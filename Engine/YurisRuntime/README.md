@@ -1,10 +1,10 @@
 # YurisRuntime host framework
 
-Mikage Next runs YU-RIS games with [MikageYURIS](https://github.com/itsCheney/MikageYURIS), a YU-RIS runtime written in Rust, built as an embeddable iOS dynamic framework.
+Mikage Next runs YU-RIS games with [MikageYURIS](https://github.com/Mikage-Next/MikageYURIS), a YU-RIS runtime written in Rust, built as an embeddable iOS dynamic framework.
 
 Pinned input:
 
-- `Source/` submodule: `itsCheney/MikageYURIS`, branch `mikage`. It reads a game's YPF archives and compiled scripts and runs them; nothing is converted ahead of time. The C interface is `crates/yuris-mobile` with the header `platform/ios/include/yuris_mobile.h`; `docs/engine/player.md` in the submodule describes it.
+- `Source/` submodule: `Mikage-Next/MikageYURIS`, branch `mikage`. It reads a game's YPF archives and compiled scripts and runs them; nothing is converted ahead of time. The C interface is `crates/yuris-mobile` with the header `platform/ios/include/yuris_mobile.h`; `docs/engine/player.md` in the submodule describes it.
 
 MikageYURIS isn't an SDL program. It draws with wgpu into the `CAMetalLayer` of a view and has no audio output of its own: the session pulls its mixer (44.1 kHz stereo) from an `AVAudioSourceNode`. `scripts/build-yuris-ios.sh` builds the `yuris-mobile` crate as a dynamic library for the device and Apple Silicon simulator, wraps each in `YurisRuntime.framework` with the header and a module map, checks the exports, then creates `build/YurisRuntime.xcframework`. It needs Rust with the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets, nothing else. It stays a framework of its own: the other Rust engines pin other wgpu versions.
 

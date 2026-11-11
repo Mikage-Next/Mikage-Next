@@ -4,7 +4,7 @@ Mikage Next runs FVP games with [rfvp](https://github.com/xmoezzz/rfvp), a Rust 
 
 Pinned input:
 
-- `Source/` submodule: `itsCheney/rfvp`, branch `mikage`, based on upstream `main` (062fec8). The branch drops the Microsoft fonts upstream embeds (MS Gothic, MS Mincho, MS PGothic, MS PMincho; they may not be redistributed) and the host registers system fonts instead. It also adds the `rfvp_mikage_*` calls in `crates/rfvp/src/mikage_host.rs`; `MIKAGE.md` in the submodule lists the changes.
+- `Source/` submodule: `Mikage-Next/MikageFVP`, branch `mikage`, based on upstream `main` (062fec8). The branch drops the Microsoft fonts upstream embeds (MS Gothic, MS Mincho, MS PGothic, MS PMincho; they may not be redistributed) and the host registers system fonts instead. It also adds the `rfvp_mikage_*` calls in `crates/rfvp/src/mikage_host.rs`; `MIKAGE.md` in the submodule lists the changes.
 
 rfvp isn't an SDL program. It renders with wgpu into a `CAMetalLayer`, plays audio through kira (CoreAudio), decodes MP4 movies with VideoToolbox and WMV and MPEG-2 movies in Rust. `scripts/build-rfvp-ios.sh` builds the `rfvp` crate as a dynamic library for the device and Apple Silicon simulator, wraps each in `RFVPRuntime.framework` with the C header (`rfvp.h`) and a module map, checks the exports, then creates `build/RFVPRuntime.xcframework`. It needs Rust with the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets, nothing else from the other engines. It stays a framework of its own rather than sharing one with siglus_rs: the two pin different wgpu and kira versions.
 

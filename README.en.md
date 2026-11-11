@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · English
 
-Mikage Next is a visual novel player for iPhone and iPad. It keeps all your games in one library and runs each one with the engine it was made for. KiriKiri (KAG / TJS) games play today, through an embedded build of [KRKRSDL3](https://github.com/itsCheney/krkrsdl3), ONScripter games through [ONScripter Yuri](https://github.com/YuriSizuku/OnscripterYuri), and Ren’Py games through [Ren’Py 8](https://github.com/itsCheney/renpy) itself. Artemis, SiglusEngine, FVP, BGI, YU-RIS, CMVS and SoftPAL games run experimentally, through [openArtemis](https://github.com/itsCheney/openartemis), [siglus_rs](https://github.com/itsCheney/siglus_rs), [rfvp](https://github.com/itsCheney/rfvp), [ethornell-rs](https://github.com/itsCheney/ethornell-rs), [MikageYURIS](https://github.com/itsCheney/MikageYURIS), [MikageCMVS](https://github.com/itsCheney/MikageCMVS) and [MikageSoftPAL](https://github.com/itsCheney/MikageSoftPAL).
+Mikage Next is a visual novel player for iPhone and iPad. It keeps all your games in one library and runs each one with the engine it was made for. KiriKiri (KAG / TJS) games play today, through an embedded build of [KRKRSDL3](https://github.com/Mikage-Next/krkrsdl3), ONScripter games through [ONScripter Yuri](https://github.com/YuriSizuku/OnscripterYuri), and Ren’Py games through [Ren’Py 8](https://github.com/Mikage-Next/renpy) itself. Artemis, SiglusEngine, FVP, BGI, YU-RIS, CMVS and SoftPAL games run experimentally, through [openArtemis](https://github.com/Mikage-Next/openartemis), [siglus_rs](https://github.com/Mikage-Next/MikageSiglus), [rfvp](https://github.com/Mikage-Next/MikageFVP), [ethornell-rs](https://github.com/Mikage-Next/MikageBGI), [MikageYURIS](https://github.com/Mikage-Next/MikageYURIS), [MikageCMVS](https://github.com/Mikage-Next/MikageCMVS) and [MikageSoftPAL](https://github.com/Mikage-Next/MikageSoftPAL).
 
 Mikage ships no game content. You bring games you own.
 
@@ -69,7 +69,7 @@ ZIP import and Wi-Fi upload aren’t available yet. The plan for the next engine
 Requirements: macOS with Xcode 26, CMake, XcodeGen and Git. vcpkg is bootstrapped by the runtime build. The first build compiles FFmpeg, SDL3 and the other runtime dependencies, so it takes a while.
 
 ```sh
-git clone --recursive https://github.com/itsCheney/Mikage-Next.git
+git clone --recursive https://github.com/Mikage-Next/Mikage-Next.git
 cd Mikage-Next
 brew install cmake xcodegen
 bash scripts/fetch-metalangle-ios.sh  # downloads build/MetalANGLE.xcframework (OpenGL ES on Metal)
@@ -98,7 +98,7 @@ Every push to `main`, `beta` or `runtime-dev` also runs the [iOS build workflow]
 - `beta`: testing ahead of `main`.
 - `runtime-dev`: development. New engine and runtime work lands here first, then merges into `beta`, and `beta` into `main`.
 
-Each branch pins the KiriKiri runtime from its own branch of [krkrsdl3_build](https://github.com/itsCheney/krkrsdl3_build) and [krkrsdl3](https://github.com/itsCheney/krkrsdl3): `mikage` for `main`, `mikage-beta` for `beta`, `runtime-dev` for `runtime-dev`. The other engine submodules follow their `mikage` branch on every branch.
+Each branch pins the KiriKiri runtime from its own branch of [krkrsdl3_build](https://github.com/Mikage-Next/krkrsdl3_build) and [krkrsdl3](https://github.com/Mikage-Next/krkrsdl3): `mikage` for `main`, `mikage-beta` for `beta`, `runtime-dev` for `runtime-dev`. The other engine submodules follow their `mikage` branch on every branch.
 
 ## Repository layout
 
@@ -107,17 +107,17 @@ Each branch pins the KiriKiri runtime from its own branch of [krkrsdl3_build](ht
 | `App/` | The SwiftUI app: library, game details, player, settings, storage, Bangumi/VNDB linking, string catalog |
 | `App/Engine/` | The bridges that host the KiriKiri, ONScripter, Artemis, Ren’Py, SiglusEngine, FVP, BGI, YU-RIS, CMVS and SoftPAL runtimes inside the app; `SDLHost/` is the part every SDL engine shares (landscape, window switching, frame stepping, foreground changes) |
 | `Sources/VNCore/` | Swift package: library scanning and import, path safety, Bangumi and VNDB clients, matching |
-| `Engine/KRKRRuntime/` | The KRKRSDL3 runtime, pinned as a submodule ([krkrsdl3_build](https://github.com/itsCheney/krkrsdl3_build) → [krkrsdl3](https://github.com/itsCheney/krkrsdl3)) |
-| `Engine/ONSRuntime/` | ONScripter Yuri, pinned as a submodule ([Mikage branch](https://github.com/itsCheney/OnscripterYuri)), running on the shared SDL3 through sdl2-compat |
-| `Engine/ArtemisRuntime/` | openArtemis, pinned as a submodule ([Mikage branch](https://github.com/itsCheney/openartemis)), running directly on the shared SDL3 |
-| `Engine/RenPyRuntime/` | Ren’Py 8, pinned as a submodule ([mikage branch](https://github.com/itsCheney/renpy)), running with CPython 3.12 on the shared SDL3, with OpenGL ES from MetalANGLE |
+| `Engine/KRKRRuntime/` | The KRKRSDL3 runtime, pinned as a submodule ([krkrsdl3_build](https://github.com/Mikage-Next/krkrsdl3_build) → [krkrsdl3](https://github.com/Mikage-Next/krkrsdl3)) |
+| `Engine/ONSRuntime/` | ONScripter Yuri, pinned as a submodule ([Mikage branch](https://github.com/Mikage-Next/OnscripterYuri)), running on the shared SDL3 through sdl2-compat |
+| `Engine/ArtemisRuntime/` | openArtemis, pinned as a submodule ([Mikage branch](https://github.com/Mikage-Next/openartemis)), running directly on the shared SDL3 |
+| `Engine/RenPyRuntime/` | Ren’Py 8, pinned as a submodule ([mikage branch](https://github.com/Mikage-Next/renpy)), running with CPython 3.12 on the shared SDL3, with OpenGL ES from MetalANGLE |
 | `Engine/SDL3/patches/`, `Engine/MetalANGLE/` | The patches that make the shared SDL3 run OpenGL ES windows on MetalANGLE instead of Apple's deprecated OpenGLES, and MetalANGLE's license |
-| `Engine/SiglusRuntime/` | siglus_rs, pinned as a submodule ([mikage branch](https://github.com/itsCheney/siglus_rs)): Rust, rendering with wgpu straight to Metal, without SDL |
-| `Engine/RFVPRuntime/` | rfvp, pinned as a submodule ([mikage branch](https://github.com/itsCheney/rfvp)): Rust, rendering with wgpu straight to Metal, without SDL |
-| `Engine/EthornellRuntime/` | ethornell-rs, pinned as a submodule ([mikage branch](https://github.com/itsCheney/ethornell-rs)): Rust, rendering with wgpu straight to Metal, without SDL |
-| `Engine/YurisRuntime/` | MikageYURIS, pinned as a submodule ([mikage branch](https://github.com/itsCheney/MikageYURIS)): a YU-RIS runtime in Rust, rendering with wgpu straight to Metal, without SDL |
-| `Engine/CMVSRuntime/` | MikageCMVS, pinned as a submodule ([mikage branch](https://github.com/itsCheney/MikageCMVS), a fork of cmvs-rs): a CMVS runtime in Rust, rendering with wgpu straight to Metal, without SDL |
-| `Engine/SoftPALRuntime/` | MikageSoftPAL, pinned as a submodule ([mikage branch](https://github.com/itsCheney/MikageSoftPAL), a fork of sena-rs): a SoftPAL runtime in Rust, rendering with wgpu straight to Metal, without SDL |
+| `Engine/SiglusRuntime/` | siglus_rs, pinned as a submodule ([mikage branch](https://github.com/Mikage-Next/MikageSiglus)): Rust, rendering with wgpu straight to Metal, without SDL |
+| `Engine/RFVPRuntime/` | rfvp, pinned as a submodule ([mikage branch](https://github.com/Mikage-Next/MikageFVP)): Rust, rendering with wgpu straight to Metal, without SDL |
+| `Engine/EthornellRuntime/` | ethornell-rs, pinned as a submodule ([mikage branch](https://github.com/Mikage-Next/MikageBGI)): Rust, rendering with wgpu straight to Metal, without SDL |
+| `Engine/YurisRuntime/` | MikageYURIS, pinned as a submodule ([mikage branch](https://github.com/Mikage-Next/MikageYURIS)): a YU-RIS runtime in Rust, rendering with wgpu straight to Metal, without SDL |
+| `Engine/CMVSRuntime/` | MikageCMVS, pinned as a submodule ([mikage branch](https://github.com/Mikage-Next/MikageCMVS), a fork of cmvs-rs): a CMVS runtime in Rust, rendering with wgpu straight to Metal, without SDL |
+| `Engine/SoftPALRuntime/` | MikageSoftPAL, pinned as a submodule ([mikage branch](https://github.com/Mikage-Next/MikageSoftPAL), a fork of sena-rs): a SoftPAL runtime in Rust, rendering with wgpu straight to Metal, without SDL |
 | `Engine/MikageSDLHost/` | The shared native host an SDL engine runtime built on SDL's main callbacks compiles in (KiriKiri and Artemis): drives SDL's main callbacks, stopping, foreground changes, the audio session and the reset between games |
 | `Tests/` | Swift unit tests and native runtime tests |
 | `scripts/` | Build scripts and diagnostic analysis tools |

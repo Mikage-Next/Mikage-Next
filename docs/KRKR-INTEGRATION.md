@@ -4,8 +4,8 @@ Mikage 已将 KRKRSDL3 封装为可嵌入 SwiftUI 宿主的 `KRKRRuntime.xcframe
 
 ## 固定版本
 
-- `itsCheney/krkrsdl3_build` fork submodule: `96aa196d40cf30f4e7313882fc4980d2835845ba` (`mikage`)
-- 嵌套的 `itsCheney/krkrsdl3` core fork submodule: `4a8a46b9eb859fe66cc867233384ed9c038c6410` (`mikage`)
+- `Mikage-Next/krkrsdl3_build` fork submodule: `96aa196d40cf30f4e7313882fc4980d2835845ba` (`mikage`)
+- 嵌套的 `Mikage-Next/krkrsdl3` core fork submodule: `4a8a46b9eb859fe66cc867233384ed9c038c6410` (`mikage`)
 - vcpkg baseline: `8e8dfb4ba483886936ded5ca201b500b8d8b0096`
 - 上游核心：https://github.com/krkrsdl3/krkrsdl3
 - 上游构建：https://github.com/krkrsdl3/krkrsdl3_build

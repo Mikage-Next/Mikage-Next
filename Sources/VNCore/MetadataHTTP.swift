@@ -31,7 +31,7 @@ struct MetadataHTTP: Sendable {
     let service: MetadataService
     let session: URLSession
 
-    static let userAgent = "itsCheney/Mikage-Next (https://github.com/itsCheney/Mikage-Next)"
+    static let userAgent = "Mikage-Next/Mikage-Next (https://github.com/Mikage-Next/Mikage-Next)"
 
     func request(
         _ url: URL,

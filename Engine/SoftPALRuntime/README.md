@@ -1,10 +1,10 @@
 # SoftPALRuntime host framework
 
-Mikage Next runs SoftPAL (PAL engine) games with [MikageSoftPAL](https://github.com/itsCheney/MikageSoftPAL), Mikage's fork of [sena-rs](https://github.com/xmoezzz/sena-rs), a SoftPAL runtime written in Rust, built as an embeddable iOS dynamic framework.
+Mikage Next runs SoftPAL (PAL engine) games with [MikageSoftPAL](https://github.com/Mikage-Next/MikageSoftPAL), Mikage's fork of [sena-rs](https://github.com/xmoezzz/sena-rs), a SoftPAL runtime written in Rust, built as an embeddable iOS dynamic framework.
 
 Pinned input:
 
-- `Source/` submodule: `itsCheney/MikageSoftPAL`, branch `mikage`. It reads the game's PAC archives (`data.pac` with the script, `bgm.pac`, `st.pac`...) and runs the script; nothing is converted ahead of time. The C interface is `crates/sena-mobile` with the header `platform/ios/include/sena_mobile.h`; `MIKAGE.md` in the submodule lists what the fork adds to upstream.
+- `Source/` submodule: `Mikage-Next/MikageSoftPAL`, branch `mikage`. It reads the game's PAC archives (`data.pac` with the script, `bgm.pac`, `st.pac`...) and runs the script; nothing is converted ahead of time. The C interface is `crates/sena-mobile` with the header `platform/ios/include/sena_mobile.h`; `MIKAGE.md` in the submodule lists what the fork adds to upstream.
 
 MikageSoftPAL isn't an SDL program. It draws with wgpu into the `CAMetalLayer` of a view and has no audio output of its own: the session pulls its mixer from an `AVAudioSourceNode`. Button reactions and voice waits finish as their sound plays, so the sound is pulled whenever the game runs. `scripts/build-softpal-ios.sh` builds the `sena-mobile` crate as a dynamic library for the device and Apple Silicon simulator, wraps each in `SoftPALRuntime.framework` with the header and a module map, checks the exports, then creates `build/SoftPALRuntime.xcframework`. It needs Rust with the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets, nothing else. It stays a framework of its own: the other Rust engines pin other wgpu versions.
 

@@ -4,12 +4,12 @@ Mikage Next builds KRKRSDL3 as an embeddable iOS dynamic framework instead of us
 
 Pinned inputs:
 
-- `krkrsdl3_build` fork submodule: `9d95628e7a1dc8f30f0391416c6632b587680694` (`itsCheney/krkrsdl3_build`, branch `runtime-dev`)
-- nested `krkrsdl3` core submodule: `a92137836d384d180760e936c9746dfad47cf5fc` (`itsCheney/krkrsdl3`, branch `runtime-dev`)
+- `krkrsdl3_build` fork submodule: `ba4555ccc6d22daf916cba99f1adfe9614425403` (`Mikage-Next/krkrsdl3_build`, branch `runtime-dev`)
+- nested `krkrsdl3` core submodule: `a589a29062dc63ec33d046528b74f37b4e2fd84f` (`Mikage-Next/krkrsdl3`, branch `runtime-dev`)
 - vcpkg baseline: `8e8dfb4ba483886936ded5ca201b500b8d8b0096`
 - shared SDL3 submodule `Engine/SDL3/Source`: `release-3.4.12` (`f87239e71e42da91ca317a12eefb82cfbf3393eb`), the same SDL release vcpkg provides at that baseline
 
-`Source/` is the pinned `itsCheney/krkrsdl3_build` fork and contains the public C API, frame metrics, lifecycle driver, and its nested pinned `itsCheney/krkrsdl3` core fork. The forked changes make KRKR restart-safe, maintain drawable-space touch coordinates, isolate graphics/event/media/session state, invalidate late video frames, and append runtime logging to each game's `savedata/krkr.console.log`. `scripts/build-krkr-ios.sh` initializes the nested submodule, verifies the scenario cache isolation, builds device and Apple Silicon simulator frameworks, then creates `build/KRKRRuntime.xcframework`.
+`Source/` is the pinned `Mikage-Next/krkrsdl3_build` fork and contains the public C API, frame metrics, lifecycle driver, and its nested pinned `Mikage-Next/krkrsdl3` core fork. The forked changes make KRKR restart-safe, maintain drawable-space touch coordinates, isolate graphics/event/media/session state, invalidate late video frames, and append runtime logging to each game's `savedata/krkr.console.log`. `scripts/build-krkr-ios.sh` initializes the nested submodule, verifies the scenario cache isolation, builds device and Apple Silicon simulator frameworks, then creates `build/KRKRRuntime.xcframework`.
 
 SDL3 is not compiled into KRKRRuntime. `scripts/build-sdl3-ios.sh` builds the pinned SDL submodule as a dynamic `build/SDL3.xcframework`, which the app embeds once so every engine runtime shares one SDL (two static copies would register duplicate SDL UIKit classes and keep separate hint, event and audio state). `build-krkr-ios.sh` passes each slice to the build fork as `KRKR_SDL3_FRAMEWORK`; KRKR still compiles against vcpkg's SDL3 headers, configure fails if their version differs from the framework's, and the script rejects a runtime that does not load `@rpath/SDL3.framework/SDL3` or still defines SDL code of its own. Build SDL3 first, then KRKR.
 

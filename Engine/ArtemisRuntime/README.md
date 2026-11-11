@@ -1,10 +1,10 @@
 # ArtemisRuntime host framework
 
-Mikage Next runs Artemis games with [openArtemis](https://github.com/itsCheney/openartemis), a C++20 / SDL3 reimplementation of the Artemis engine, built as an embeddable iOS dynamic framework.
+Mikage Next runs Artemis games with [openArtemis](https://github.com/Mikage-Next/openartemis), a C++20 / SDL3 reimplementation of the Artemis engine, built as an embeddable iOS dynamic framework.
 
 Pinned inputs:
 
-- `Source/` submodule: `itsCheney/openartemis`, branch `mikage`, based on `main`
+- `Source/` submodule: `Mikage-Next/openartemis`, branch `mikage`, based on `main`
 - SDL3: the app's shared `build/SDL3.xcframework`
 - FFmpeg 7.1.2 for movies: the static libraries `scripts/build-krkr-ios.sh` installs with vcpkg for KiriKiri (`build/krkr-vcpkg-installed`). `scripts/build-artemis-ios.sh` installs that manifest itself when they are missing.
 - freetype, libpng, libjpeg-turbo, libvorbis, libtheora and PhysicsFS from openArtemis's own vcpkg manifest (baseline `8e8dfb4b`, the same as KiriKiri), installed into `build/artemis-vcpkg-installed`. Its iOS triplets are copies of KiriKiri's, so the packages both use come from the same binary cache.
