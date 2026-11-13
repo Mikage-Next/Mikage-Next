@@ -234,88 +234,46 @@ struct GameDetailView: View {
 
     // MARK: Community ratings
 
-    /// One card per service that has a score, each opening the game's page
-    /// there. Hidden until either service has ratings.
+    /// The rating board: Bangumi and VNDB, then ErogameScape, NextMoe and
+    /// DLsite from NextMoe. Hidden until a site has ratings.
     @ViewBuilder
     private var communityRatings: some View {
-        let cards = MetadataService.allCases.compactMap { service in
-            communityRating(service).map { (service: service, rating: $0) }
-        }
-        if !cards.isEmpty {
-            HStack(spacing: 10) {
-                ForEach(cards, id: \.service) { card in
-                    ratingCard(card.service, card.rating)
-                }
-                if cards.count == 1 {
-                    // A lone card keeps its width rather than stretching.
-                    Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 18)
+        let sites = ratingSites
+        if !sites.isEmpty {
+            RatingBoard(sites: sites)
+                .padding(.horizontal, 16)
+                .padding(.top, 18)
         }
     }
 
-    private func communityRating(_ service: MetadataService) -> CommunityRating? {
-        switch service {
-        case .bangumi: return current.link?.bangumiID == nil ? nil : metadata?.bangumiRating
-        case .vndb: return current.link?.vndbID == nil ? nil : metadata?.vndbRating
+    private var ratingSites: [RatingBoard.Site] {
+        guard let link = current.link else { return [] }
+        let metadata = link.metadata
+        var sites: [RatingBoard.Site] = []
+        if link.bangumiID != nil, let rating = metadata.bangumiRating {
+            sites.append(.init(id: "bangumi", name: "Bangumi", rating: rating, url: link.bangumiURL))
         }
-    }
-
-    private func serviceURL(_ service: MetadataService) -> URL? {
-        switch service {
-        case .bangumi: return current.link?.bangumiURL
-        case .vndb: return current.link?.vndbURL
+        if link.vndbID != nil, let rating = metadata.vndbRating {
+            sites.append(.init(id: "vndb", name: "VNDB", rating: rating, url: link.vndbURL))
         }
-    }
-
-    private func ratingCard(_ service: MetadataService, _ rating: CommunityRating) -> some View {
-        Button {
-            if let url = serviceURL(service) { openURL(url) }
-        } label: {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 4) {
-                    Text(verbatim: service.displayName)
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    Spacer(minLength: 4)
-                    if let rank = rating.rank {
-                        Text("Rank #\(rank)")
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(.tertiary)
-                            .monospacedDigit()
-                    }
-                }
-                .lineLimit(1)
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(rating.score, format: .number.precision(.fractionLength(1)))
-                        .font(.system(size: 30, weight: .bold))
-                        .monospacedDigit()
-                    Spacer(minLength: 0)
-                    Text("\(rating.votes) ratings")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-            }
-            .foregroundStyle(.primary)
-            .padding(.vertical, 12)
-            .padding(.leading, 16)
-            .padding(.trailing, 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                Color(uiColor: .secondarySystemGroupedBackground),
-                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-            )
-            .shadow(color: .black.opacity(0.06), radius: 1.5, y: 1)
+        guard model.settings.useNextMoe else { return sites }
+        if let rating = metadata.egsRating {
+            sites.append(.init(
+                id: "erogamescape", name: String(localized: "EGS"), rating: rating, url: metadata.egsURL,
+                native: "\(Int((rating.score * 10).rounded()))/100"
+            ))
         }
-        .buttonStyle(.plain)
-        .disabled(serviceURL(service) == nil)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint(Text("Opens the game in \(service.displayName)"))
+        if let rating = metadata.nextmoeRating {
+            sites.append(.init(id: "nextmoe", name: "NextMoe", rating: rating, url: metadata.nextmoeURL))
+        }
+        if let rating = metadata.dlsiteRating {
+            sites.append(.init(
+                id: "dlsite", name: "DLsite", rating: rating, url: metadata.dlsiteURL,
+                native: (rating.score / 2).formatted(.number.precision(.fractionLength(1))) + "/5",
+                store: true
+            ))
+        }
+        return sites
     }
 
     // MARK: Play, status and rating
@@ -424,6 +382,9 @@ struct GameDetailView: View {
     private var progress: some View {
         DetailGroup("Progress") {
             DetailRow("Played on This Device", value: current.playTime.playTimeSummary, divider: false)
+            if model.settings.useNextMoe, let length = metadata?.typicalLength {
+                typicalLength(length)
+            }
             if let started = current.listEntry.startedAt {
                 DetailRow("Started", value: started.formatted(date: .abbreviated, time: .omitted))
             }
@@ -439,6 +400,57 @@ struct GameDetailView: View {
                 savesRow
             }
         }
+    }
+
+    /// How long the game usually takes, from the site with the most votes,
+    /// and how far this device's playtime has come towards it.
+    private func typicalLength(_ length: PlayLength) -> some View {
+        let fraction = min(current.playTime / (Double(length.minutes) * 60), 1)
+        return VStack(spacing: 0) {
+            Divider().padding(.leading, 16)
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Typical Length")
+                    Text(lengthSource(length))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                Text(length.summary)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, current.playTime > 0 ? 8 : 10)
+            .frame(minHeight: 50)
+            if current.playTime > 0 {
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color(uiColor: .systemGray5))
+                        Capsule().fill(Color.accentColor)
+                            .frame(width: max(geometry.size.width * fraction, 6))
+                    }
+                }
+                .frame(height: 6)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
+                .accessibilityHidden(true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// "VNDB · 186 votes · EGS about 30 hr": the source shown, then a
+    /// second site's figure when there is one.
+    private func lengthSource(_ length: PlayLength) -> String {
+        var parts = [length.votes > 0
+            ? String(localized: "\(length.sourceName) · \(length.votes) votes")
+            : length.sourceName]
+        if let other = metadata?.lengths.first(where: { $0.source != length.source && ["vndb", "erogamescape", "howlongtobeat"].contains($0.source) }) {
+            parts.append("\(other.sourceName) \(other.summary)")
+        }
+        return parts.joined(separator: " · ")
     }
 
     /// ONScripter saves are the game's own files, listed on their own page.
@@ -656,12 +668,25 @@ struct GameDetailView: View {
                 if let url = current.link?.vndbURL {
                     linkRow("Open in VNDB", url: url, divider: current.link?.bangumiURL != nil)
                 }
+                if showsNextMoe, let url = metadata?.egsURL {
+                    linkRow("Open in ErogameScape", url: url, divider: true)
+                }
+                if showsNextMoe, let url = metadata?.officialSiteURL {
+                    linkRow("Official Website", url: url, divider: true)
+                }
             }
             Text(credit)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 16)
         }
+    }
+
+    /// Whether anything from NextMoe is on the page.
+    private var showsNextMoe: Bool {
+        guard model.settings.useNextMoe, let metadata else { return false }
+        return metadata.egsRating != nil || metadata.dlsiteRating != nil || metadata.nextmoeRating != nil
+            || !metadata.lengths.isEmpty || metadata.egsID != nil || metadata.officialSite != nil
     }
 
     private func linkRow(_ title: LocalizedStringKey, url: URL, divider: Bool) -> some View {
@@ -682,6 +707,15 @@ struct GameDetailView: View {
     }
 
     private var credit: String {
+        guard showsNextMoe else { return serviceCredit }
+        // 鲲 Galgame 论坛 asks to be credited by this name.
+        let language = Bundle.main.preferredLocalizations.first ?? "en"
+        let separator = language.hasPrefix("zh") || language.hasPrefix("ja") ? "" : " "
+        return serviceCredit + separator
+            + String(localized: "Other ratings, ranks, lengths and links via 鲲 Galgame 论坛 (NextMoe).")
+    }
+
+    private var serviceCredit: String {
         let link = current.link
         switch (link?.bangumiID != nil, link?.vndbID != nil) {
         case (true, true):

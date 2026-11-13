@@ -84,6 +84,8 @@ final class AppModel: ObservableObject {
     var lastLinkedRefresh: Date?
     /// Bangumi-only games already searched on VNDB this launch.
     var vndbLookups: Set<UUID> = []
+    /// Linked games already looked up on NextMoe this launch.
+    var nextmoeLookups: Set<UUID> = []
     let tokens: any ServiceTokenStore
 
     private(set) var libraryReadable = true

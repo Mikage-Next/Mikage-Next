@@ -327,4 +327,96 @@ final class MetadataTests: XCTestCase {
         XCTAssertEqual(bare.vndbID, "v12")
         XCTAssertNil(BangumiSubject(id: 7, name: "Y").vndbID)
     }
+
+    // MARK: NextMoe
+
+    private func nextmoeWork(_ json: String) throws -> NextMoeWork {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(NextMoeWork.self, from: Data(json.utf8))
+    }
+
+    func testNextMoeWorkDecodesAndFillsTheExtraDetails() throws {
+        let work = try nextmoeWork("""
+        {"object":"work","id":"11432","display_name":"ふぇいばりっと Sweet！","latin":null,
+        "localized":{"zh-Hans":{"value":"最爱 Sweet！","is_machine":true}},
+        "claim":{"site":"kungal","site_work_id":"11432","state":"live"},
+        "refs":[{"source":"bangumi","external_id":"14383"},{"source":"dlsite","external_id":"VJ005336"},
+        {"source":"erogamescape","external_id":"13432"},{"source":"vndb","external_id":"r8043"},
+        {"source":"vndb","external_id":"v4145"}],
+        "ratings":[{"source":"vndb","score":7.12,"vote_count":16,"rank":null},
+        {"source":"dlsite","score":4.01,"vote_count":124,"rank":null},
+        {"source":"erogamescape","score":64,"vote_count":34,"rank":null},
+        {"source":"nextmoe","score":8.5,"vote_count":0,"rank":null}],
+        "playtimes":[{"source":"vndb","minutes":900,"vote_count":1},{"source":"erogamescape","minutes":240,"vote_count":0}],
+        "links":[{"source":"official_site","url":"https://example.com/sweet/index.html","is_identity":false},
+        {"source":"official_site","url":"https://example.com","is_identity":false}]}
+        """)
+
+        XCTAssertEqual(work.vndbID, "v4145")
+        XCTAssertEqual(work.bangumiIDs, [14383])
+        XCTAssertNil(work.chineseTitle, "machine translations are skipped")
+        XCTAssertEqual(work.officialSite, "https://example.com")
+
+        var metadata = LinkedMetadata(chineseTitle: nil)
+        metadata.apply(nextmoe: work)
+        XCTAssertEqual(metadata.egsRating?.score ?? 0, 6.4, accuracy: 0.001)
+        XCTAssertEqual(metadata.dlsiteRating?.score ?? 0, 8.02, accuracy: 0.001)
+        XCTAssertNil(metadata.nextmoeRating, "a rating without votes is left out")
+        XCTAssertNil(metadata.chineseTitle)
+        XCTAssertEqual(metadata.typicalLength?.source, "vndb")
+        XCTAssertEqual(metadata.egsURL?.absoluteString, "https://erogamescape.dyndns.org/~ap2/ero/toukei_kaiseki/game.php?game=13432")
+        XCTAssertEqual(metadata.dlsiteURL?.absoluteString, "https://www.dlsite.com/pro/work/=/product_id/VJ005336.html")
+        XCTAssertEqual(metadata.nextmoeURL?.absoluteString, "https://www.kungal.com/galgame/11432")
+    }
+
+    func testNextMoeChineseTitleFillsInOnlyWhenMissing() {
+        let work = NextMoeWork(
+            id: "1", displayName: "サマーポケッツ",
+            localized: ["zh-Hans": .init(value: "夏日口袋", isMachine: false)]
+        )
+        var missing = LinkedMetadata()
+        missing.apply(nextmoe: work)
+        XCTAssertEqual(missing.chineseTitle, "夏日口袋")
+
+        var present = LinkedMetadata(chineseTitle: "夏日口袋 Reflection Blue")
+        present.apply(nextmoe: work)
+        XCTAssertEqual(present.chineseTitle, "夏日口袋 Reflection Blue")
+    }
+
+    func testAlignedIDsPairEntriesWhoseTitlesDiffer() {
+        let vndb = [VNDBVisualNovel(id: "v1", title: "Natsukage Kairou", alttitle: "夏影回廊", released: "2019-08-23")]
+        let bangumi = [
+            // Same title, but NextMoe says it is another work.
+            BangumiSubject(id: 11, name: "夏影回廊", date: "2019-08-23"),
+            BangumiSubject(id: 10, name: "なつかげ", nameCN: "夏日回廊", date: "2019-08-23")
+        ]
+        let aligned = [NextMoeAlignment(workID: "7", vndbID: "v1", bangumiIDs: [10])]
+
+        let candidates = MatchFinder.candidates(query: "夏影回廊", vndb: vndb, bangumi: bangumi, aligned: aligned)
+
+        let paired = candidates.first { $0.vndb?.id == "v1" }
+        XCTAssertEqual(paired?.bangumi?.id, 10)
+        XCTAssertTrue(paired?.idsAligned ?? false)
+        XCTAssertEqual(paired?.nextmoe?.workID, "7")
+        XCTAssertTrue(candidates.contains { $0.bangumi?.id == 11 && $0.vndb == nil && !$0.idsAligned })
+    }
+
+    func testTitlePairsAreNotMarkedAligned() {
+        let vndb = [VNDBVisualNovel(id: "v1", title: "Natsukage Kairou", alttitle: "夏影回廊", released: "2019-08-23")]
+        let bangumi = [BangumiSubject(id: 10, name: "夏影回廊", date: "2019-08-23")]
+
+        let candidates = MatchFinder.candidates(query: "夏影回廊", vndb: vndb, bangumi: bangumi)
+
+        XCTAssertEqual(candidates.first?.bangumi?.id, 10)
+        XCTAssertFalse(candidates.first?.idsAligned ?? true)
+    }
+
+    func testDetailsSavedBeforeNextMoeAreFetchedAgain() throws {
+        let data = Data(#"{"tags":[],"posters":[],"screenshots":[],"format":3}"#.utf8)
+        let metadata = try JSONDecoder().decode(LinkedMetadata.self, from: data)
+        XCTAssertTrue(metadata.isStale)
+        XCTAssertTrue(metadata.lengths.isEmpty)
+        XCTAssertNil(metadata.egsRating)
+    }
 }

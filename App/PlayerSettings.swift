@@ -41,6 +41,10 @@ struct PlayerSettings: Codable {
     var titleDisplay = TitleDisplay.storageDefault
     var bannerArt = BannerArt.storageDefault
     var hideSensitiveImages = true
+    /// Reads the public NextMoe catalog for ErogameScape, DLsite and
+    /// NextMoe ratings, play lengths and links, and to pair VNDB and
+    /// Bangumi entries by id. Needs no account.
+    var useNextMoe = true
 
     init() {}
 
@@ -82,6 +86,7 @@ struct PlayerSettings: Codable {
         titleDisplay = value(.titleDisplay, fallback.titleDisplay)
         bannerArt = value(.bannerArt, fallback.bannerArt)
         hideSensitiveImages = value(.hideSensitiveImages, fallback.hideSensitiveImages)
+        useNextMoe = value(.useNextMoe, fallback.useNextMoe)
     }
 }
 

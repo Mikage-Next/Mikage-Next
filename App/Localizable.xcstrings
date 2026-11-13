@@ -10352,6 +10352,410 @@
           }
         }
       }
+    },
+    "NextMoe is busy. Try again in a minute." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe が混み合っています。少し待ってからもう一度お試しください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe 繁忙，请稍后再试。"
+          }
+        }
+      }
+    },
+    "NextMoe returned error %lld." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe がエラー %lld を返しました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe 返回了错误 %lld。"
+          }
+        }
+      }
+    },
+    "NextMoe returned error %lld: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe がエラー %1$lld を返しました：%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe 返回了错误 %1$lld：%2$@"
+          }
+        }
+      }
+    },
+    "NextMoe sent a response Mikage couldn’t read." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe から Mikage が読み取れない応答が返されました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe 返回的内容 Mikage 无法读取。"
+          }
+        }
+      }
+    },
+    "Ratings" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "評価"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "评分"
+          }
+        }
+      }
+    },
+    "All out of 10" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべて 10 点満点"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "均为 10 分制"
+          }
+        }
+      }
+    },
+    "Ranks and Spread" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "順位と分布"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排名与分布"
+          }
+        }
+      }
+    },
+    "%@, rank %lld, %lld ratings" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@、%2$lld 位、評価 %3$lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，排名 %2$lld，%3$lld 人评分"
+          }
+        }
+      }
+    },
+    "%@, %lld ratings" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@、評価 %2$lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，%2$lld 人评分"
+          }
+        }
+      }
+    },
+    "# is the rank on that site, then the number of ratings." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "# はそのサイトでの順位、続く数字は評価数です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "# 为该站排名，其后为评分人数。"
+          }
+        }
+      }
+    },
+    "The shaded band is the range of the review sites (%@–%@)." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網掛けは評価サイトの範囲（%1$@–%2$@）です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阴影是各评分站的范围（%1$@–%2$@）。"
+          }
+        }
+      }
+    },
+    "DLsite, in grey, is a store rating and usually runs high." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "グレーの DLsite はストア評価で、高めに出がちです。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "灰色的 DLsite 为店铺评分，通常偏高。"
+          }
+        }
+      }
+    },
+    "EGS" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批評空間"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批评空间"
+          }
+        }
+      }
+    },
+    "About %lld hr" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約 %lld 時間"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "约 %lld 小时"
+          }
+        }
+      }
+    },
+    "About %lld min" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約 %lld 分"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "约 %lld 分钟"
+          }
+        }
+      }
+    },
+    "Typical Length" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリア目安"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通关参考"
+          }
+        }
+      }
+    },
+    "%@ · %lld votes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$lld 人"
+          }
+        }
+      }
+    },
+    "Open in ErogameScape" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批評空間で開く"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在批评空间打开"
+          }
+        }
+      }
+    },
+    "Official Website" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公式サイト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "官方网站"
+          }
+        }
+      }
+    },
+    "Other ratings, ranks, lengths and links via 鲲 Galgame 论坛 (NextMoe)." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その他の評価・順位・プレイ時間・リンクは鯤 Galgame 論壇（NextMoe）経由。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他评分、排名、通关时长与链接数据来自鲲 Galgame 论坛（NextMoe）。"
+          }
+        }
+      }
+    },
+    "More Ratings and Lengths" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その他の評価とクリア目安"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多评分与通关时长"
+          }
+        }
+      }
+    },
+    "ErogameScape, DLsite, NextMoe" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批評空間、DLsite、NextMoe"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批评空间、DLsite、NextMoe"
+          }
+        }
+      }
+    },
+    "A cover you set yourself is never replaced. Extra ratings, lengths and links come from 鲲 Galgame 论坛 (NextMoe), which also pairs Bangumi and VNDB entries by ID. No account needed; machine-translated Chinese titles are never used." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自分で設定したカバーは置き換えられません。追加の評価・クリア目安・リンクは鯤 Galgame 論壇（NextMoe）から取得し、Bangumi と VNDB の項目も ID で照合します。アカウントは不要で、機械翻訳の中国語名は使いません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你自己设置的封面不会被替换。额外的评分、通关时长和链接来自鲲 Galgame 论坛（NextMoe），它也会按 ID 对齐 Bangumi 与 VNDB 条目。不需要账号，机翻的中文名不会被采用。"
+          }
+        }
+      }
+    },
+    "Sites Aligned" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各サイト照合済み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各站已对齐"
+          }
+        }
+      }
+    },
+    "NextMoe lists the VNDB and Bangumi entries as the same work." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe はこの VNDB と Bangumi の項目を同じ作品として登録しています。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NextMoe 将这两个 VNDB 与 Bangumi 条目记为同一作品。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

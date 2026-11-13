@@ -248,23 +248,35 @@ extension AppModel {
         VNDBClient(token: tokens.token(for: .vndb))
     }
 
+    /// The NextMoe catalog, unless the player turned it off.
+    func nextmoeClient() -> NextMoeClient? {
+        settings.useNextMoe ? NextMoeClient() : nil
+    }
+
     // MARK: Matching
 
     /// Searches both services at once. Fails only when both fail, so one
-    /// service being down still leaves the other's candidates.
+    /// service being down still leaves the other's candidates. NextMoe is
+    /// searched alongside: its results pair the two services' entries by id.
     func searchCandidates(_ query: String) async throws -> [MatchCandidate] {
         let vndb = vndbClient()
         let bangumi = await bangumiClient()
+        let nextmoe = nextmoeClient()
         async let vndbResults = Self.attempt { try await vndb.search(query) }
         async let bangumiResults = Self.attempt { try await bangumi.search(query) }
-        let (novels, subjects) = await (vndbResults, bangumiResults)
+        async let nextmoeResults = Self.attempt { try await nextmoe?.search(query) ?? [] }
+        let (novels, subjects, works) = await (vndbResults, bangumiResults, nextmoeResults)
         if case .failure(let error) = novels, case .failure = subjects {
             throw error
+        }
+        if case .failure(let error) = works {
+            AppDiagnostics.shared.event("linking", "nextmoe.searchFailed", ["error": error.localizedDescription])
         }
         return MatchFinder.candidates(
             query: query,
             vndb: (try? novels.get()) ?? [],
-            bangumi: (try? subjects.get()) ?? []
+            bangumi: (try? subjects.get()) ?? [],
+            aligned: ((try? works.get()) ?? []).map(\.alignment)
         )
     }
 
@@ -295,6 +307,23 @@ extension AppModel {
         AppDiagnostics.shared.event("linking", "link.begin", ["folder": game.folderName, "candidate": candidate.id])
         var novel = candidate.vndb
         var subject = candidate.bangumi
+        // NextMoe's own record of which entries are one work comes before
+        // searching the other service by title.
+        let nextmoe = nextmoeClient()
+        var work: NextMoeWork?
+        if let nextmoe {
+            if let id = candidate.nextmoe?.workID {
+                work = try? await nextmoe.work(id: id)
+            } else if let found = try? await nextmoe.work(vndbID: novel?.id, bangumiID: subject?.id) {
+                work = (try? await nextmoe.work(id: found.id)) ?? found
+            }
+        }
+        if novel == nil, let id = work?.vndbID {
+            novel = try? await vndbClient().visualNovel(id: id)
+        }
+        if subject == nil, let id = work?.bangumiIDs.first {
+            subject = try? await bangumiClient().subject(id: id)
+        }
         if novel == nil, let subject {
             novel = await counterpart(ofBangumi: subject)
         }
@@ -305,7 +334,15 @@ extension AppModel {
         if let id = subject?.id, let full = try? await bangumiClient().subject(id: id) {
             subject = full
         }
-        let metadata = LinkedMetadata.merged(vndb: novel, bangumi: subject, vndbRank: await vndbRank(of: novel))
+        var metadata = LinkedMetadata.merged(vndb: novel, bangumi: subject, vndbRank: await vndbRank(of: novel))
+        // A work found from one id may still not be this pair: keep it only
+        // when it names one of the linked entries.
+        if let found = work, !found.alignment.contains(vndb: novel?.id), !found.alignment.contains(bangumi: subject?.id) {
+            work = nil
+        }
+        if let work {
+            metadata.apply(nextmoe: work)
+        }
         let remote = await remoteEntry(vndbID: novel?.id, bangumiID: subject?.id)
 
         guard let previous = record(game.id) else { throw LibraryError.recordNotFound }
@@ -319,6 +356,7 @@ extension AppModel {
             link.vndbID = novel?.id
             link.bangumiID = subject?.id
             link.metadata = metadata
+            link.nextmoeWorkID = work?.id
             record.link = link
             if record.listEntry.status == nil && record.listEntry.rating == nil, let remote {
                 // The player's list already has this work: adopt it.
@@ -332,7 +370,9 @@ extension AppModel {
             }
         }
         guard updated != nil else { throw LibraryError.recordNotFound }
-        AppDiagnostics.shared.event("linking", "link.end", ["vndb": novel?.id ?? "", "bangumi": subject.map { String($0.id) } ?? ""])
+        AppDiagnostics.shared.event("linking", "link.end", [
+            "vndb": novel?.id ?? "", "bangumi": subject.map { String($0.id) } ?? "", "nextmoe": work?.id ?? ""
+        ])
         await refreshArtwork(for: game.id)
         await sync(game.id)
     }
@@ -364,17 +404,60 @@ extension AppModel {
         do {
             async let novel = link.vndbID.asyncFlatMap { try await vndb.visualNovel(id: $0) }
             async let subject = link.bangumiID.asyncFlatMap { try await bangumi.subject(id: $0) }
+            async let work = nextmoeWork(for: link)
             let fetchedNovel = try await novel
-            let metadata = LinkedMetadata.merged(
+            var metadata = LinkedMetadata.merged(
                 vndb: fetchedNovel,
                 bangumi: try await subject,
                 vndbRank: await vndbRank(of: fetchedNovel)
             )
-            updateRecord(game.id) { $0.link?.metadata = metadata }
+            let fetchedWork = await work
+            switch fetchedWork {
+            case .found(let work): metadata.apply(nextmoe: work)
+            case .failed: metadata.keepNextMoe(from: link.metadata)
+            case .notFound: break
+            }
+            updateRecord(game.id) { record in
+                record.link?.metadata = metadata
+                if case .found(let work) = fetchedWork {
+                    record.link?.nextmoeWorkID = work.id
+                } else if case .notFound = fetchedWork {
+                    record.link?.nextmoeWorkID = nil
+                }
+            }
             await refreshArtwork(for: game.id)
         } catch {
             AppDiagnostics.shared.event("linking", "metadata.failed", ["error": error.localizedDescription])
             if showErrors { alert = error.localizedDescription }
+        }
+    }
+
+    enum NextMoeLookup: Sendable {
+        case found(NextMoeWork)
+        /// NextMoe has no such work.
+        case notFound
+        /// The request failed, or NextMoe is turned off; what was saved
+        /// before stays.
+        case failed
+    }
+
+    /// The linked work's NextMoe details, links included.
+    func nextmoeWork(for link: GameLink) async -> NextMoeLookup {
+        guard let nextmoe = nextmoeClient() else {
+            return .failed
+        }
+        do {
+            var id = link.nextmoeWorkID
+            if id == nil {
+                id = try await nextmoe.work(vndbID: link.vndbID, bangumiID: link.bangumiID)?.id
+            }
+            guard let id, let work = try await nextmoe.work(id: id),
+                  work.alignment.contains(vndb: link.vndbID) || work.alignment.contains(bangumi: link.bangumiID)
+            else { return .notFound }
+            return .found(work)
+        } catch {
+            AppDiagnostics.shared.event("linking", "nextmoe.failed", ["error": error.localizedDescription])
+            return .failed
         }
     }
 
@@ -387,6 +470,7 @@ extension AppModel {
     func refreshLinkedGames() async {
         if let last = lastLinkedRefresh, Date().timeIntervalSince(last) < 5 * 60 { return }
         lastLinkedRefresh = Date()
+        await findNextMoeWorks()
         for game in games + missingGames where game.link != nil {
             await refreshLinked(game.id)
         }
@@ -405,14 +489,57 @@ extension AppModel {
         await pullListEntry(id)
     }
 
+    /// Finds the NextMoe work of every linked game that has none yet, a
+    /// hundred ids per request rather than one request per game, so the
+    /// detail refreshes that follow need one request each.
+    private func findNextMoeWorks() async {
+        guard let nextmoe = nextmoeClient() else { return }
+        let pending = (games + missingGames).filter { game in
+            guard let link = game.link else { return false }
+            return link.nextmoeWorkID == nil && !nextmoeLookups.contains(game.id)
+        }
+        guard !pending.isEmpty else { return }
+        var refs: [String] = []
+        for game in pending {
+            nextmoeLookups.insert(game.id)
+            if let id = game.link?.vndbID { refs.append("vndb:\(id)") }
+            if let id = game.link?.bangumiID { refs.append("bangumi:\(id)") }
+        }
+        guard let works = try? await nextmoe.works(refs: refs) else {
+            // Try again on a later refresh.
+            for game in pending { nextmoeLookups.remove(game.id) }
+            return
+        }
+        AppDiagnostics.shared.event("linking", "nextmoe.matched", ["games": String(pending.count), "works": String(works.count)])
+        for game in pending {
+            guard let link = game.link,
+                  let work = works.first(where: { $0.alignment.contains(vndb: link.vndbID) })
+                    ?? works.first(where: { $0.alignment.contains(bangumi: link.bangumiID) }) else { continue }
+            updateRecord(game.id) { $0.link?.nextmoeWorkID = work.id }
+            // Games due a refresh anyway get NextMoe's details with it;
+            // others, such as ones linked while NextMoe was off, now.
+            if !link.metadata.isStale, let updated = record(game.id) {
+                await refreshMetadata(updated, showErrors: false)
+            }
+        }
+    }
+
     /// A game linked on Bangumi alone gets its VNDB entry when one is
     /// found, once per launch. Returns whether the link gained one.
     private func findVNDBCounterpart(_ id: UUID) async -> Bool {
         guard !vndbLookups.contains(id), let link = record(id)?.link, link.vndbID == nil,
               let bangumiID = link.bangumiID else { return false }
         vndbLookups.insert(id)
-        guard let subject = try? await bangumiClient().subject(id: bangumiID),
-              let novel = await counterpart(ofBangumi: subject) else { return false }
+        guard let subject = try? await bangumiClient().subject(id: bangumiID) else { return false }
+        var novel: VNDBVisualNovel?
+        if let nextmoe = nextmoeClient(),
+           let vndbID = try? await nextmoe.work(vndbID: nil, bangumiID: bangumiID)?.vndbID {
+            novel = try? await vndbClient().visualNovel(id: vndbID)
+        }
+        if novel == nil {
+            novel = await counterpart(ofBangumi: subject)
+        }
+        guard let novel else { return false }
         AppDiagnostics.shared.event("linking", "counterpart.added", ["vndb": novel.id])
         let rank = await vndbRank(of: novel)
         updateRecord(id) { record in
@@ -420,7 +547,10 @@ extension AppModel {
             record.link?.vndbID = novel.id
             record.link?.metadata = LinkedMetadata.merged(vndb: novel, bangumi: subject, vndbRank: rank)
         }
-        await refreshArtwork(for: id)
+        // Fresh details, NextMoe's included, and the artwork.
+        if let game = record(id) {
+            await refreshMetadata(game, showErrors: false)
+        }
         return true
     }
 

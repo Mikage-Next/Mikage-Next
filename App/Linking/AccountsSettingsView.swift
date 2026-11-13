@@ -72,10 +72,18 @@ struct AccountsSettingsView: View {
                 }
                 .pickerStyle(.menu)
                 Toggle("Hide Sensitive Images", isOn: $model.settings.hideSensitiveImages)
+                Toggle(isOn: $model.settings.useNextMoe) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("More Ratings and Lengths")
+                        Text("ErogameScape, DLsite, NextMoe")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             } header: {
                 Text("Details")
             } footer: {
-                Text("A cover you set yourself is never replaced.")
+                Text("A cover you set yourself is never replaced. Extra ratings, lengths and links come from 鲲 Galgame 论坛 (NextMoe), which also pairs Bangumi and VNDB entries by ID. No account needed; machine-translated Chinese titles are never used.")
             }
 
             Section {

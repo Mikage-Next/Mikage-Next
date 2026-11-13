@@ -136,6 +136,9 @@ public struct GameLink: Codable, Equatable, Sendable {
     /// No longer used: the details page always shows VNDB's cover. Kept
     /// so libraries saved by earlier builds still decode.
     public var posterChoice: String?
+    /// The same work in the NextMoe catalog, which supplies the extra
+    /// ratings and play lengths.
+    public var nextmoeWorkID: String?
 
     public init(
         vndbID: String? = nil,
@@ -146,7 +149,8 @@ public struct GameLink: Codable, Equatable, Sendable {
         posterSource: String? = nil,
         bannerSource: String? = nil,
         bannerChoice: String? = nil,
-        posterChoice: String? = nil
+        posterChoice: String? = nil,
+        nextmoeWorkID: String? = nil
     ) {
         self.vndbID = vndbID
         self.bangumiID = bangumiID
@@ -157,6 +161,7 @@ public struct GameLink: Codable, Equatable, Sendable {
         self.bannerSource = bannerSource
         self.bannerChoice = bannerChoice
         self.posterChoice = posterChoice
+        self.nextmoeWorkID = nextmoeWorkID
     }
 
     public var services: [MetadataService] {
@@ -204,6 +209,20 @@ public struct CommunityRating: Codable, Equatable, Sendable {
     }
 }
 
+/// How long a site's players say the game takes.
+public struct PlayLength: Codable, Equatable, Sendable {
+    /// NextMoe's source name: "vndb", "erogamescape", "howlongtobeat".
+    public var source: String
+    public var minutes: Int
+    public var votes: Int
+
+    public init(source: String, minutes: Int, votes: Int) {
+        self.source = source
+        self.minutes = minutes
+        self.votes = votes
+    }
+}
+
 /// Details merged from both services. Bangumi supplies the Chinese title,
 /// synopsis and tags; VNDB supplies developer, release date and screenshots.
 /// Each falls back to the other service when its preferred source has none.
@@ -224,6 +243,18 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
     public var screenshots: [ArtworkCandidate]
     public var bangumiRating: CommunityRating?
     public var vndbRating: CommunityRating?
+    /// From NextMoe, each converted to a score out of 10: ErogameScape
+    /// (out of 100), DLsite (a store rating out of 5) and NextMoe itself.
+    public var egsRating: CommunityRating?
+    public var dlsiteRating: CommunityRating?
+    public var nextmoeRating: CommunityRating?
+    /// Play lengths NextMoe gathered from VNDB, ErogameScape and others.
+    public var lengths: [PlayLength]
+    public var officialSite: String?
+    /// Ids on sites linked through NextMoe, for their pages.
+    public var egsID: String?
+    public var dlsiteID: String?
+    public var nextmoePage: String?
     public var fetchedAt: Date?
     /// How the details were put together. Details from an older format are
     /// fetched again, since sensitivity flags and poster order changed.
@@ -232,7 +263,8 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
     /// Format 2: VNDB's cover leads, and only explicit images count as
     /// sensitive (Bangumi's R18 flag marks the game, not its cover).
     /// Format 3: each service's community rating.
-    public static let currentFormat = 3
+    /// Format 4: ratings, play lengths and links from NextMoe.
+    public static let currentFormat = 4
 
     public var isStale: Bool { format < Self.currentFormat }
 
@@ -249,6 +281,14 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         screenshots: [ArtworkCandidate] = [],
         bangumiRating: CommunityRating? = nil,
         vndbRating: CommunityRating? = nil,
+        egsRating: CommunityRating? = nil,
+        dlsiteRating: CommunityRating? = nil,
+        nextmoeRating: CommunityRating? = nil,
+        lengths: [PlayLength] = [],
+        officialSite: String? = nil,
+        egsID: String? = nil,
+        dlsiteID: String? = nil,
+        nextmoePage: String? = nil,
         fetchedAt: Date? = nil,
         format: Int = LinkedMetadata.currentFormat
     ) {
@@ -264,6 +304,14 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         self.screenshots = screenshots
         self.bangumiRating = bangumiRating
         self.vndbRating = vndbRating
+        self.egsRating = egsRating
+        self.dlsiteRating = dlsiteRating
+        self.nextmoeRating = nextmoeRating
+        self.lengths = lengths
+        self.officialSite = officialSite
+        self.egsID = egsID
+        self.dlsiteID = dlsiteID
+        self.nextmoePage = nextmoePage
         self.fetchedAt = fetchedAt
         self.format = format
     }
@@ -282,6 +330,14 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         screenshots = try container.decodeIfPresent([ArtworkCandidate].self, forKey: .screenshots) ?? []
         bangumiRating = try? container.decodeIfPresent(CommunityRating.self, forKey: .bangumiRating)
         vndbRating = try? container.decodeIfPresent(CommunityRating.self, forKey: .vndbRating)
+        egsRating = try? container.decodeIfPresent(CommunityRating.self, forKey: .egsRating)
+        dlsiteRating = try? container.decodeIfPresent(CommunityRating.self, forKey: .dlsiteRating)
+        nextmoeRating = try? container.decodeIfPresent(CommunityRating.self, forKey: .nextmoeRating)
+        lengths = (try? container.decodeIfPresent([PlayLength].self, forKey: .lengths)) ?? []
+        officialSite = try? container.decodeIfPresent(String.self, forKey: .officialSite)
+        egsID = try? container.decodeIfPresent(String.self, forKey: .egsID)
+        dlsiteID = try? container.decodeIfPresent(String.self, forKey: .dlsiteID)
+        nextmoePage = try? container.decodeIfPresent(String.self, forKey: .nextmoePage)
         fetchedAt = try container.decodeIfPresent(Date.self, forKey: .fetchedAt)
         format = (try? container.decodeIfPresent(Int.self, forKey: .format)) ?? 1
     }
@@ -365,6 +421,73 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         result.bangumiRating = bangumi?.communityRating
         result.vndbRating = vndb?.communityRating(rank: vndbRank)
         return result
+    }
+
+    /// Adds what NextMoe knows beyond the two services: the other sites'
+    /// ratings, play lengths, links, and a Chinese title when neither
+    /// service has one (machine translations are skipped).
+    public mutating func apply(nextmoe work: NextMoeWork) {
+        func rating(_ source: String, scale: Double) -> CommunityRating? {
+            work.rating(source).map {
+                CommunityRating(score: ($0.score ?? 0) * scale, votes: $0.voteCount ?? 0, rank: $0.rank)
+            }
+        }
+        egsRating = rating("erogamescape", scale: 0.1)
+        dlsiteRating = rating("dlsite", scale: 2)
+        nextmoeRating = rating("nextmoe", scale: 1)
+        lengths = (work.playtimes ?? []).compactMap { time in
+            guard let minutes = time.minutes, minutes > 0 else { return nil }
+            return PlayLength(source: time.source, minutes: minutes, votes: time.voteCount ?? 0)
+        }
+        officialSite = work.officialSite
+        egsID = work.ref("erogamescape")
+        dlsiteID = work.ref("dlsite")
+        nextmoePage = work.pageURL
+        if chineseTitle == nil {
+            chineseTitle = work.chineseTitle
+        }
+    }
+
+    /// Keeps the NextMoe details of `older` when they couldn't be fetched
+    /// this time.
+    public mutating func keepNextMoe(from older: LinkedMetadata) {
+        egsRating = older.egsRating
+        dlsiteRating = older.dlsiteRating
+        nextmoeRating = older.nextmoeRating
+        lengths = older.lengths
+        officialSite = older.officialSite
+        egsID = older.egsID
+        dlsiteID = older.dlsiteID
+        nextmoePage = older.nextmoePage
+    }
+
+    /// The length to show: the most-voted of VNDB and HowLongToBeat, else
+    /// ErogameScape's, which comes without a vote count.
+    public var typicalLength: PlayLength? {
+        let voted = lengths.filter { ["vndb", "howlongtobeat"].contains($0.source) && $0.votes > 0 }
+        return voted.max { $0.votes < $1.votes }
+            ?? lengths.first { $0.source == "erogamescape" }
+            ?? lengths.first
+    }
+
+    public var egsURL: URL? {
+        egsID.flatMap { URL(string: "https://erogamescape.dyndns.org/~ap2/ero/toukei_kaiseki/game.php?game=\($0)") }
+    }
+
+    /// DLsite keeps all-ages works under "pro" (VJ…) and adult ones under
+    /// "maniax" (RJ…).
+    public var dlsiteURL: URL? {
+        guard let id = dlsiteID else { return nil }
+        let floor = id.hasPrefix("VJ") ? "pro" : "maniax"
+        return URL(string: "https://www.dlsite.com/\(floor)/work/=/product_id/\(id).html")
+    }
+
+    public var nextmoeURL: URL? {
+        nextmoePage.flatMap(URL.init(string:))
+    }
+
+    public var officialSiteURL: URL? {
+        officialSite.flatMap(URL.init(string:))
     }
 
     /// VNDB uses "TBA" and other placeholders for unknown dates.

@@ -265,6 +265,18 @@ struct MatchCandidateRow: View {
                                 .padding(.vertical, 2)
                                 .background(Color.accentColor.opacity(0.14), in: Capsule())
                         }
+                        if candidate.idsAligned {
+                            // NextMoe lists both entries as one work, so the
+                            // pair is not a guess from titles.
+                            Label("Sites Aligned", systemImage: "link")
+                                .labelStyle(StudioLabelStyle())
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.tint)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.accentColor.opacity(0.14), in: Capsule())
+                                .accessibilityHint(Text("NextMoe lists the VNDB and Bangumi entries as the same work."))
+                        }
                         Text(sources)
                             .font(.caption)
                             .foregroundStyle(.secondary)

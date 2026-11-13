@@ -6,11 +6,27 @@ public struct MatchCandidate: Identifiable, Equatable, Sendable {
     public var bangumi: BangumiSubject?
     /// 0–1 similarity between the search text and the closest title.
     public var score: Double
+    /// The NextMoe work this result belongs to, which may name the other
+    /// service's entry when only one service found it.
+    public var nextmoe: NextMoeAlignment?
 
-    public init(vndb: VNDBVisualNovel? = nil, bangumi: BangumiSubject? = nil, score: Double = 0) {
+    public init(
+        vndb: VNDBVisualNovel? = nil,
+        bangumi: BangumiSubject? = nil,
+        score: Double = 0,
+        nextmoe: NextMoeAlignment? = nil
+    ) {
         self.vndb = vndb
         self.bangumi = bangumi
         self.score = score
+        self.nextmoe = nextmoe
+    }
+
+    /// Whether NextMoe confirms the VNDB and Bangumi entries are one work,
+    /// rather than the pair being guessed from titles.
+    public var idsAligned: Bool {
+        guard let nextmoe, let vndb, let bangumi else { return false }
+        return nextmoe.contains(vndb: vndb.id) && nextmoe.contains(bangumi: bangumi.id)
     }
 
     public var id: String {
@@ -94,25 +110,39 @@ public enum MatchFinder {
     }
 
     /// Pairs VNDB and Bangumi results for the same work and ranks them by
-    /// how closely their titles match `query`.
+    /// how closely their titles match `query`. Pairs NextMoe lines up by id
+    /// come first; titles and years pair the rest.
     public static func candidates(
         query: String,
         vndb: [VNDBVisualNovel],
-        bangumi: [BangumiSubject]
+        bangumi: [BangumiSubject],
+        aligned: [NextMoeAlignment] = []
     ) -> [MatchCandidate] {
         var remaining = bangumi
         var result: [MatchCandidate] = []
         for novel in vndb {
-            let keys = Set(novel.allTitles.map(key))
-            var candidate = MatchCandidate(vndb: novel)
-            if let index = remaining.firstIndex(where: { subject in
-                !keys.isDisjoint(with: subject.allTitles.map(key)) && yearsAgree(novel.released, subject.date)
-            }) {
-                candidate.bangumi = remaining.remove(at: index)
+            let alignment = aligned.first { $0.contains(vndb: novel.id) }
+            var candidate = MatchCandidate(vndb: novel, nextmoe: alignment)
+            if let alignment, !alignment.bangumiIDs.isEmpty {
+                // NextMoe names the Bangumi entry: take it if the search
+                // found it, and never pair a different one by title.
+                if let index = remaining.firstIndex(where: { alignment.contains(bangumi: $0.id) }) {
+                    candidate.bangumi = remaining.remove(at: index)
+                }
+            } else {
+                let keys = Set(novel.allTitles.map(key))
+                if let index = remaining.firstIndex(where: { subject in
+                    !keys.isDisjoint(with: subject.allTitles.map(key)) && yearsAgree(novel.released, subject.date)
+                        && !aligned.contains { $0.contains(bangumi: subject.id) && $0.vndbID != nil }
+                }) {
+                    candidate.bangumi = remaining.remove(at: index)
+                }
             }
             result.append(candidate)
         }
-        result += remaining.map { MatchCandidate(bangumi: $0) }
+        result += remaining.map { subject in
+            MatchCandidate(bangumi: subject, nextmoe: aligned.first { $0.contains(bangumi: subject.id) })
+        }
 
         let queryKey = key(query)
         for index in result.indices {
