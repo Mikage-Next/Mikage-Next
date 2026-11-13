@@ -1,0 +1,59 @@
+name: Clean runtime caches
+
+# Deletes this branch's engine runtime caches (built frameworks and their
+# Cargo target caches) that were made for a runtime commit the branch no longer
+# pins; for KRKR, every framework but the newest. Shared SDL3, vcpkg, ccache
+# and native-test caches are left alone, as are other branches' caches. Run it
+# from the Actions tab on the branch to clean, after its iOS build finished.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: List what would be deleted without deleting it
+        type: boolean
+        default: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete caches for runtime commits that are no longer pinned
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          pins=$(git ls-tree -r HEAD Engine | awk '$2 == "commit" { print $3 }')
+          echo "Pinned runtime commits:"
+          echo "${pins}"
+          gh cache list --repo "${GITHUB_REPOSITORY}" --ref "${GITHUB_REF}" \
+            --limit 1000 --json id,key,sizeInBytes,createdAt \
+            --jq 'sort_by(.createdAt) | reverse | .[] | "\(.id) \(.sizeInBytes) \(.key)"' > caches.txt
+          deleted=0
+          freed=0
+          krkr_kept=false
+          # Newest first. KRKR's framework key ends in the SDL3 revision (its own
+          # runtime is in the hash of its sources), so only its newest is kept.
+          while read -r id size key; do
+            case "${key}" in
+              krkr-runtime-v*)
+                if [ "${krkr_kept}" = false ]; then krkr_kept=true; continue; fi ;;
+              *-runtime-v*|*-cargo-v*)
+                rev="${key##*-}"
+                [[ "${rev}" =~ ^[0-9a-f]{40}$ ]] || continue
+                grep -qx "${rev}" <<<"${pins}" && continue ;;
+              *) continue ;;
+            esac
+            echo "delete ${key} ($((size / 1048576)) MB)"
+            if [ "${DRY_RUN}" != "true" ]; then
+              gh cache delete "${id}" --repo "${GITHUB_REPOSITORY}"
+            fi
+            deleted=$((deleted + 1))
+            freed=$((freed + size))
+          done < caches.txt
+          echo "${deleted} caches, $((freed / 1048576)) MB$( [ "${DRY_RUN}" = "true" ] && echo ' (dry run)')"
