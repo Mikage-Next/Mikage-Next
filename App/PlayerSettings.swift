@@ -13,6 +13,8 @@ struct PlayerSettings: Codable {
     /// The floating buttons beside the menu button, in order; at most
     /// `QuickActionKind.limit`.
     var quickActions = QuickActionKind.defaults
+    /// A tap on the game stops a skip started with the Skip quick action.
+    var tapStopsSkip = true
     /// Widens games narrower than 16:9 (such as 4:3) to 16:9. Off by
     /// default: a 4:3 game stays 4:3. Either way the game is letterboxed.
     var stretchToScreen = false
@@ -65,6 +67,7 @@ struct PlayerSettings: Codable {
             .filter { seen.insert($0).inserted }
             .prefix(QuickActionKind.limit)
             .map { $0 }
+        tapStopsSkip = value(.tapStopsSkip, fallback.tapStopsSkip)
         stretchToScreen = value(.stretchToScreen, fallback.stretchToScreen)
         respectSilentMode = value(.respectSilentMode, fallback.respectSilentMode)
         performance = value(.performance, fallback.performance)

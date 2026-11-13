@@ -328,6 +328,7 @@ final class AppModel: ObservableObject {
             idleOpacity: settings.idleOpacity,
             threeFingerMenu: settings.threeFingerMenu,
             quickActions: settings.quickActions,
+            tapStopsSkip: settings.tapStopsSkip,
             stretchToScreen: settings.stretchToScreen,
             respectSilentMode: settings.respectSilentMode,
             performance: settings.performance,

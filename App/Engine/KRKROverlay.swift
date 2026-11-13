@@ -126,9 +126,14 @@ final class KRKROverlayCoordinator: NSObject, UIGestureRecognizerDelegate {
     /// places them, so they don't jump from the screen edges into the bars.
     private var controlsRevealed = false
     private var restoreGesture: UITapGestureRecognizer?
+    /// Watches for a tap on the game while the Skip quick action holds Ctrl.
+    private var skipStopGesture: UITapGestureRecognizer?
     private var controlSkipHeld: Bool {
         get { model.controlSkipHeld }
-        set { model.controlSkipHeld = newValue }
+        set {
+            model.controlSkipHeld = newValue
+            updateSkipStopGesture()
+        }
     }
 
     init(
@@ -525,6 +530,39 @@ final class KRKROverlayCoordinator: NSObject, UIGestureRecognizerDelegate {
 
     @objc private func restoreBall() {
         setBallHidden(false)
+    }
+
+    /// Only a skip the player started with the Skip quick action stops on a
+    /// tap. The game's own skip lights the button too, but the game already
+    /// stops that one on a tap.
+    private func updateSkipStopGesture() {
+        let wanted = controlSkipHeld && options?.tapStopsSkip == true
+        if wanted, skipStopGesture == nil, let containerView {
+            let gesture = UITapGestureRecognizer(target: self, action: #selector(stopSkipOnTap))
+            gesture.cancelsTouchesInView = false
+            gesture.delaysTouchesEnded = false
+            gesture.delegate = self
+            containerView.addGestureRecognizer(gesture)
+            skipStopGesture = gesture
+        } else if !wanted, let skipStopGesture {
+            skipStopGesture.view?.removeGestureRecognizer(skipStopGesture)
+            self.skipStopGesture = nil
+        }
+    }
+
+    @objc private func stopSkipOnTap() {
+        guard controlSkipHeld, !model.menuVisible else { return }
+        AppDiagnostics.shared.event("overlay", "skip.tapStop")
+        stopSkipping()
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard gestureRecognizer === skipStopGesture else { return true }
+        // Taps on the game only: the floating buttons, the HUD and the
+        // menu have their own.
+        guard let view = touch.view else { return true }
+        let overlays: [UIView?] = [floatingControls, hudContainer, hostingController?.view]
+        return !overlays.contains { overlay in overlay.map { view.isDescendant(of: $0) } ?? false }
     }
 
     func gestureRecognizer(

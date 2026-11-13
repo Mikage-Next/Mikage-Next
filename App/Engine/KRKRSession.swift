@@ -29,6 +29,7 @@ struct KRKRLaunchConfiguration {
     let idleOpacity: Double
     let threeFingerMenu: Bool
     var quickActions: [QuickActionKind] = QuickActionKind.defaults
+    var tapStopsSkip = true
     let stretchToScreen: Bool
     let respectSilentMode: Bool
     let performance: Bool

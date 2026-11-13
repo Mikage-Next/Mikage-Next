@@ -259,6 +259,7 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(model.settings.renderer, .metal)
         XCTAssertEqual(model.settings.idleOpacity, PlayerSettings().idleOpacity)
         XCTAssertTrue(model.settings.respectSilentMode)
+        XCTAssertTrue(model.settings.tapStopsSkip)
     }
 
     func testRefreshRecoversFromAnUnreadableLibraryOnceRepaired() throws {

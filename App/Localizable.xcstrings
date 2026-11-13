@@ -5777,6 +5777,22 @@
         }
       }
     },
+    "Tap Screen to Stop Skip" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面タップでスキップを止める"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轻点屏幕停止快进"
+          }
+        }
+      }
+    },
     "Tap with three fingers to bring the button back" : {
       "localizations" : {
         "ja" : {
@@ -5917,6 +5933,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看"
+          }
+        }
+      }
+    },
+    "When you start Skip with its quick action, a tap on the game stops it. Skip that the game turns on by itself is left to the game." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スキップをクイックアクションで始めたときは、ゲーム画面をタップすると止まります。ゲームが自分で始めたスキップはゲームに任せます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用快捷操作开启快进后，轻点游戏画面即可停止。游戏自行开启的快进仍由游戏处理。"
           }
         }
       }

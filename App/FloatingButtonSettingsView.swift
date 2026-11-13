@@ -93,6 +93,15 @@ struct FloatingButtonSettingsView: View {
                 Text("Quick actions float on their own beside the game and run with one tap. Skip here also skips unread text, like holding Ctrl.")
             }
 
+            Section {
+                Toggle(isOn: $model.settings.tapStopsSkip) {
+                    SettingLabel("Tap Screen to Stop Skip", systemImage: "hand.tap.fill")
+                }
+                .disabled(!actions.contains(.skip))
+            } footer: {
+                Text("When you start Skip with its quick action, a tap on the game stops it. Skip that the game turns on by itself is left to the game.")
+            }
+
             Section("Available") {
                 ForEach(available) { action in
                     HStack {

@@ -142,11 +142,13 @@ struct GameOverlayOptions {
     var idleOpacity = 0.6
     var threeFingerMenu = true
     var quickActions: [QuickActionKind] = QuickActionKind.defaults
+    var tapStopsSkip = true
 
     init(configuration: KRKRLaunchConfiguration) {
         floatingButton = configuration.floatingButton
         idleOpacity = configuration.idleOpacity
         threeFingerMenu = configuration.threeFingerMenu
         quickActions = configuration.quickActions
+        tapStopsSkip = configuration.tapStopsSkip
     }
 }
