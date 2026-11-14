@@ -471,8 +471,17 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         dlsiteID = work.ref("dlsite")
         nextmoePage = work.pageURL
         nextmoeBanner = work.banner?.candidate
-        // A cover taken from VNDB is the one VNDB already supplies.
-        nextmoeCover = work.cover.flatMap { $0.source == "vndb" ? nil : $0.candidate }
+        // A cover taken from VNDB is the one VNDB already supplies. NextMoe
+        // serves its own copy, which is quicker to reach from mainland
+        // China than VNDB's image host, so that copy is downloaded instead.
+        if let cover = work.cover, cover.source == "vndb" {
+            nextmoeCover = nil
+            if let index = posters.firstIndex(where: { $0.url.contains("vndb.org") }) {
+                posters[index].url = cover.url
+            }
+        } else {
+            nextmoeCover = work.cover?.candidate
+        }
         if chineseTitle == nil {
             chineseTitle = work.chineseTitle
         }

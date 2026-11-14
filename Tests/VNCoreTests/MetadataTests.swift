@@ -436,12 +436,15 @@ final class MetadataTests: XCTestCase {
         XCTAssertEqual(metadata.banner(hidingSensitive: true)?.url, "shot")
     }
 
-    func testNextMoeCoverCopiedFromVNDBIsSkipped() {
-        var metadata = LinkedMetadata()
+    func testNextMoeCopyOfTheVNDBCoverReplacesItsAddress() {
+        let vndbCover = ArtworkCandidate(url: "https://t.vndb.org/cv/1.jpg", sensitive: true, aspectRatio: 0.7)
+        var metadata = LinkedMetadata(posters: [vndbCover])
         metadata.apply(nextmoe: NextMoeWork(
             id: "1", displayName: "X",
             cover: .init(url: "copy", width: 600, height: 900, sexual: "safe", source: "vndb")
         ))
         XCTAssertNil(metadata.nextmoeCover)
+        XCTAssertEqual(metadata.posters.first?.url, "copy")
+        XCTAssertEqual(metadata.posters.first?.sensitive, true, "VNDB's own sensitivity rating stays")
     }
 }
