@@ -419,4 +419,29 @@ final class MetadataTests: XCTestCase {
         XCTAssertTrue(metadata.lengths.isEmpty)
         XCTAssertNil(metadata.egsRating)
     }
+
+    func testNextMoeBannerLeadsCardArtButAIRedrawsAreOnlyListed() {
+        let screenshot = ArtworkCandidate(url: "shot", sensitive: false, aspectRatio: 16.0 / 9.0)
+        var metadata = LinkedMetadata(screenshots: [screenshot])
+        metadata.apply(nextmoe: NextMoeWork(
+            id: "1", displayName: "X",
+            cover: .init(url: "ai-cover", width: 720, height: 1080, sexual: "safe", source: "ai_redraw"),
+            banner: .init(url: "key-art", width: 1920, height: 740, sexual: "safe", source: "vndb")
+        ))
+        XCTAssertEqual(metadata.banner(hidingSensitive: true)?.url, "key-art")
+        XCTAssertEqual(metadata.nextmoeCover?.isAIRedraw, true)
+        XCTAssertTrue(metadata.cardArt(hidingSensitive: true).contains { $0.url == "ai-cover" })
+
+        metadata.nextmoeBanner?.aiRedraw = true
+        XCTAssertEqual(metadata.banner(hidingSensitive: true)?.url, "shot")
+    }
+
+    func testNextMoeCoverCopiedFromVNDBIsSkipped() {
+        var metadata = LinkedMetadata()
+        metadata.apply(nextmoe: NextMoeWork(
+            id: "1", displayName: "X",
+            cover: .init(url: "copy", width: 600, height: 900, sexual: "safe", source: "vndb")
+        ))
+        XCTAssertNil(metadata.nextmoeCover)
+    }
 }

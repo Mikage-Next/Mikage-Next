@@ -2,7 +2,8 @@ import SwiftUI
 import VNCore
 
 /// Picks the card art for a linked game from the screenshots and covers
-/// Bangumi and VNDB supplied, widest 16:9 images first, then 4:3. Also the
+/// Bangumi, VNDB and NextMoe supplied, widest 16:9 images first, then 4:3.
+/// AI-redrawn images from NextMoe are marked. Also the
 /// step right after linking, pushed inside the match sheet.
 struct ArtworkChoiceView: View {
     @EnvironmentObject private var model: AppModel
@@ -95,9 +96,28 @@ struct ArtworkChoiceView: View {
                             ProgressView()
                         }
                     }
-                label(for: candidate)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .overlay(alignment: .topLeading) {
+                        if candidate.isAIRedraw {
+                            Text("AI")
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(.black.opacity(0.6), in: Capsule())
+                                .padding(6)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                HStack(spacing: 4) {
+                    label(for: candidate)
+                    if candidate.isAIRedraw {
+                        Text(verbatim: "·")
+                        Text("AI redraw")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityElement(children: .combine)
             }
         }
         .buttonStyle(.plain)

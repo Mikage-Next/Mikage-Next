@@ -38,6 +38,32 @@ public struct NextMoeWork: Decodable, Equatable, Sendable {
         public var url: String
     }
 
+    public struct Image: Decodable, Equatable, Sendable {
+        public var url: String
+        public var width: Int?
+        public var height: Int?
+        /// "safe", "suggestive" or "explicit"; nil when unrated.
+        public var sexual: String?
+        public var violence: String?
+        /// Where the image came from: "vndb", "bangumi", "getchu", or
+        /// "ai_redraw" for an AI-upscaled or redrawn version.
+        public var source: String?
+
+        /// Explicit images count as sensitive, as with VNDB's.
+        public var candidate: ArtworkCandidate {
+            var aspect: Double?
+            if let width, let height, height > 0 {
+                aspect = Double(width) / Double(height)
+            }
+            return ArtworkCandidate(
+                url: url,
+                sensitive: sexual == "explicit" || violence == "explicit",
+                aspectRatio: aspect,
+                aiRedraw: source == "ai_redraw" ? true : nil
+            )
+        }
+    }
+
     public struct Claim: Decodable, Equatable, Sendable {
         public var site: String?
         public var siteWorkId: String?
@@ -52,6 +78,8 @@ public struct NextMoeWork: Decodable, Equatable, Sendable {
     public var playtimes: [Playtime]?
     public var links: [Link]?
     public var claim: Claim?
+    public var cover: Image?
+    public var banner: Image?
 
     public init(
         id: String,
@@ -62,7 +90,9 @@ public struct NextMoeWork: Decodable, Equatable, Sendable {
         ratings: [Rating]? = nil,
         playtimes: [Playtime]? = nil,
         links: [Link]? = nil,
-        claim: Claim? = nil
+        claim: Claim? = nil,
+        cover: Image? = nil,
+        banner: Image? = nil
     ) {
         self.id = id
         self.displayName = displayName
@@ -73,6 +103,8 @@ public struct NextMoeWork: Decodable, Equatable, Sendable {
         self.playtimes = playtimes
         self.links = links
         self.claim = claim
+        self.cover = cover
+        self.banner = banner
     }
 
     /// The first id the work has on `source`.

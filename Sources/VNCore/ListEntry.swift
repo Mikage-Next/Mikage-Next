@@ -186,12 +186,18 @@ public struct ArtworkCandidate: Codable, Equatable, Sendable {
     public var sensitive: Bool
     /// Width over height, when the service reports dimensions.
     public var aspectRatio: Double?
+    /// An AI-upscaled or redrawn version of the art, which NextMoe offers
+    /// for some covers; labelled as such wherever it can be picked.
+    public var aiRedraw: Bool?
 
-    public init(url: String, sensitive: Bool, aspectRatio: Double? = nil) {
+    public init(url: String, sensitive: Bool, aspectRatio: Double? = nil, aiRedraw: Bool? = nil) {
         self.url = url
         self.sensitive = sensitive
         self.aspectRatio = aspectRatio
+        self.aiRedraw = aiRedraw
     }
+
+    public var isAIRedraw: Bool { aiRedraw == true }
 }
 
 /// A service's community score for a game.
@@ -255,6 +261,10 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
     public var egsID: String?
     public var dlsiteID: String?
     public var nextmoePage: String?
+    /// NextMoe's wide banner, often the game's key art, and its cover when
+    /// that isn't VNDB's own cover again.
+    public var nextmoeBanner: ArtworkCandidate?
+    public var nextmoeCover: ArtworkCandidate?
     public var fetchedAt: Date?
     /// How the details were put together. Details from an older format are
     /// fetched again, since sensitivity flags and poster order changed.
@@ -264,7 +274,8 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
     /// sensitive (Bangumi's R18 flag marks the game, not its cover).
     /// Format 3: each service's community rating.
     /// Format 4: ratings, play lengths and links from NextMoe.
-    public static let currentFormat = 4
+    /// Format 5: NextMoe's banner and cover.
+    public static let currentFormat = 5
 
     public var isStale: Bool { format < Self.currentFormat }
 
@@ -289,6 +300,8 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         egsID: String? = nil,
         dlsiteID: String? = nil,
         nextmoePage: String? = nil,
+        nextmoeBanner: ArtworkCandidate? = nil,
+        nextmoeCover: ArtworkCandidate? = nil,
         fetchedAt: Date? = nil,
         format: Int = LinkedMetadata.currentFormat
     ) {
@@ -312,6 +325,8 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         self.egsID = egsID
         self.dlsiteID = dlsiteID
         self.nextmoePage = nextmoePage
+        self.nextmoeBanner = nextmoeBanner
+        self.nextmoeCover = nextmoeCover
         self.fetchedAt = fetchedAt
         self.format = format
     }
@@ -338,6 +353,8 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         egsID = try? container.decodeIfPresent(String.self, forKey: .egsID)
         dlsiteID = try? container.decodeIfPresent(String.self, forKey: .dlsiteID)
         nextmoePage = try? container.decodeIfPresent(String.self, forKey: .nextmoePage)
+        nextmoeBanner = try? container.decodeIfPresent(ArtworkCandidate.self, forKey: .nextmoeBanner)
+        nextmoeCover = try? container.decodeIfPresent(ArtworkCandidate.self, forKey: .nextmoeCover)
         fetchedAt = try container.decodeIfPresent(Date.self, forKey: .fetchedAt)
         format = (try? container.decodeIfPresent(Int.self, forKey: .format)) ?? 1
     }
@@ -358,16 +375,26 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
     /// image, 16:9 before 4:3 before other wide shapes, skipping sensitive
     /// ones when asked. Nil when no image is known to be landscape, so the
     /// cards fall back to the poster.
+    /// NextMoe's banner comes first when it is landscape: it is often the
+    /// game's key art rather than a scene. AI redraws are never picked by
+    /// themselves, only when the player chooses one.
     public func banner(hidingSensitive: Bool) -> ArtworkCandidate? {
-        cardArt(hidingSensitive: hidingSensitive).first { Self.cardRank($0) <= 2 }
+        if let banner = nextmoeBanner, Self.cardRank(banner) <= 2, !banner.isAIRedraw,
+           !(hidingSensitive && banner.sensitive) {
+            return banner
+        }
+        return cardArt(hidingSensitive: hidingSensitive).first { Self.cardRank($0) <= 2 && !$0.isAIRedraw }
     }
 
-    /// Every image either service offers, best card art first: 16:9, then
+    /// Every image the services offer, best card art first: 16:9, then
     /// 4:3, other landscape shapes, unknown sizes, then portrait covers.
-    /// Screenshots come before posters at the same rank.
+    /// At the same rank NextMoe's banner leads, then screenshots, then
+    /// posters, then NextMoe's cover.
     public func cardArt(hidingSensitive: Bool) -> [ArtworkCandidate] {
         var seen = Set<String>()
-        return (screenshots + posters)
+        let nextmoeBanner = nextmoeBanner.map { [$0] } ?? []
+        let nextmoeCover = nextmoeCover.map { [$0] } ?? []
+        return (nextmoeBanner + screenshots + posters + nextmoeCover)
             .filter { (!hidingSensitive || !$0.sensitive) && seen.insert($0.url).inserted }
             .enumerated()
             .sorted { lhs, rhs in
@@ -443,6 +470,9 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         egsID = work.ref("erogamescape")
         dlsiteID = work.ref("dlsite")
         nextmoePage = work.pageURL
+        nextmoeBanner = work.banner?.candidate
+        // A cover taken from VNDB is the one VNDB already supplies.
+        nextmoeCover = work.cover.flatMap { $0.source == "vndb" ? nil : $0.candidate }
         if chineseTitle == nil {
             chineseTitle = work.chineseTitle
         }
@@ -459,6 +489,8 @@ public struct LinkedMetadata: Codable, Equatable, Sendable {
         egsID = older.egsID
         dlsiteID = older.dlsiteID
         nextmoePage = older.nextmoePage
+        nextmoeBanner = older.nextmoeBanner
+        nextmoeCover = older.nextmoeCover
     }
 
     /// The length to show: the most-voted of VNDB and HowLongToBeat, else
