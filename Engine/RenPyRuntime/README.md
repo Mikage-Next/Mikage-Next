@@ -8,7 +8,7 @@ Pinned inputs:
 - CPython 3.12.8, downloaded and checksummed by `scripts/build-renpy-ios.sh`, cross-built for iOS the way renpy-build does it (patches in `Source/mikage/python`). Static, with the standard library's C modules built in; no `ssl`.
 - Cython 3.3.0 and pyobjus (kivy/pyobjus `b61d65f`, renpy-build's commit) on the host, to generate C for Ren'Py's modules and pyobjus.
 - SDL3: the app's shared `build/SDL3.xcframework`. Its OpenGL ES windows run on MetalANGLE (`scripts/fetch-metalangle-ios.sh`, the binary renpy-build ships, BSD licensed; see `Engine/MetalANGLE/LICENSE`), never on Apple's deprecated OpenGLES framework.
-- FFmpeg: the static libraries `scripts/build-krkr-ios.sh` installs for KiriKiri.
+- FFmpeg: the shared `build/FFmpeg.xcframework` from `scripts/build-ffmpeg-ios.sh`, for all sound and movies.
 - SDL3_image, FreeType, HarfBuzz, FriBidi, libpng, libjpeg-turbo, libwebp, assimp, libffi, zlib, bzip2 and liblzma from `Source/mikage/vcpkg.json` (baseline `8e8dfb4b`, KiriKiri's triplets), installed into `build/renpy-vcpkg-installed`.
 
 `scripts/build-renpy-ios.sh` generates Ren'Py's C (`setup.py generate`), builds CPython and the framework for the device and the Apple Silicon simulator, checks that each links the shared SDL3 and MetalANGLE (and not OpenGLES) and exports only the Mikage host API, copies the Python standard library (`base/lib/python312.zip`), Ren'Py's Python and `renpy/common` into the framework's `base/`, then creates `build/RenPyRuntime.xcframework`. Fetch MetalANGLE and build SDL3 first; it needs a host Python 3.12 (`RENPY_HOST_PYTHON`, or `python3.12` on PATH).

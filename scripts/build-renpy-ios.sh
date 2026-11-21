@@ -6,8 +6,8 @@ set -euo pipefail
 # Python standard library and Ren'Py's Python code in its base/ folder.
 #
 # It links the shared SDL3.xcframework (whose OpenGL ES runs on MetalANGLE)
-# and the FFmpeg the KiriKiri build installs, so run fetch-metalangle-ios.sh
-# and build-sdl3-ios.sh first. A host Python 3.12 is needed to cross-build
+# and the shared FFmpeg.xcframework, so run fetch-metalangle-ios.sh,
+# build-sdl3-ios.sh and build-ffmpeg-ios.sh first. A host Python 3.12 is needed to cross-build
 # CPython and to generate Ren'Py's C from Cython: set RENPY_HOST_PYTHON, or
 # have python3.12 on PATH.
 
@@ -108,8 +108,6 @@ fi
 
 # The same vcpkg the KiriKiri build uses: the runner's, or a checkout at the
 # shared baseline.
-KRKR_SOURCE_DIR="${PROJECT_DIR}/Engine/KRKRRuntime/Source"
-KRKR_INSTALLED_ROOT="${PROJECT_DIR}/build/krkr-vcpkg-installed"
 VCPKG_BASELINE="8e8dfb4ba483886936ded5ca201b500b8d8b0096"
 if [[ -n "${VCPKG_ROOT:-}" && -x "${VCPKG_ROOT}/vcpkg" ]]; then
     :
@@ -127,29 +125,13 @@ else
 fi
 export VCPKG_ROOT VCPKG_DISABLE_METRICS=1
 
-# Movies are decoded with the FFmpeg the KiriKiri runtime installs through
-# vcpkg (scripts/build-krkr-ios.sh), as openArtemis does.
-ensure_ffmpeg() {
-    local triplet="$1"
-    local installed_dir="$2"
-    if [[ -f "${installed_dir}/${triplet}/lib/libavformat.a" ]]; then
-        return
-    fi
-    mkdir -p "${installed_dir}"
-    "${VCPKG_ROOT}/vcpkg" install \
-        --x-manifest-root="${KRKR_SOURCE_DIR}" \
-        --x-install-root="${installed_dir}" \
-        --overlay-ports="${KRKR_SOURCE_DIR}/vcpkg/ports" \
-        --overlay-triplets="${KRKR_SOURCE_DIR}/vcpkg/triplets" \
-        --triplet="${triplet}"
-    if [[ ! -f "${installed_dir}/${triplet}/lib/libavformat.a" ]]; then
-        echo "vcpkg did not install FFmpeg for ${triplet}." >&2
-        exit 1
-    fi
-}
-
-ensure_ffmpeg arm64-ios "${KRKR_INSTALLED_ROOT}/device"
-ensure_ffmpeg arm64-ios-simulator "${KRKR_INSTALLED_ROOT}/simulator"
+# Sound and movies are decoded with the shared FFmpeg.xcframework the app
+# embeds once for every engine (scripts/build-ffmpeg-ios.sh).
+FFMPEG_XCFRAMEWORK="${PROJECT_DIR}/build/FFmpeg.xcframework"
+if [[ ! -f "${FFMPEG_XCFRAMEWORK}/ios-arm64/FFmpeg.framework/FFmpeg" || ! -f "${FFMPEG_XCFRAMEWORK}/ios-arm64-simulator/FFmpeg.framework/FFmpeg" ]]; then
+    echo "Shared FFmpeg is missing. Run: bash scripts/build-ffmpeg-ios.sh" >&2
+    exit 1
+fi
 
 # Ren'Py's own libraries (SDL3_image, FreeType, HarfBuzz, FriBidi, assimp,
 # libffi, ...) from mikage/vcpkg.json. Its triplets are KiriKiri's plus a
@@ -323,7 +305,7 @@ fi
 build_slice() {
     local sdk="$1"
     local deps="$2"
-    local ffmpeg_root="$3"
+    local ffmpeg_slice="$3"
     local sdl3_slice="$4"
     local metalangle_slice="$5"
     local build_dir="${BUILD_ROOT}/${sdk}"
@@ -335,7 +317,7 @@ build_slice() {
         -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
         -DRENPY_PYTHON_PREFIX="${BUILD_ROOT}/python-install-${sdk}" \
         -DRENPY_DEPS_PREFIX="${deps}" \
-        -DRENPY_FFMPEG_ROOT="${ffmpeg_root}" \
+        -DRENPY_FFMPEG_FRAMEWORK="${FFMPEG_XCFRAMEWORK}/${ffmpeg_slice}/FFmpeg.framework" \
         -DRENPY_SDL3_FRAMEWORK="${SDL3_XCFRAMEWORK}/${sdl3_slice}/SDL3.framework" \
         -DRENPY_METALANGLE_FRAMEWORK="${METALANGLE_XCFRAMEWORK}/${metalangle_slice}/MetalANGLE.framework" \
         -DRENPY_PYOBJUS_DIR="${PYOBJUS_GEN}" \
@@ -345,9 +327,9 @@ build_slice() {
 }
 
 build_slice iphoneos "${RENPY_INSTALLED_ROOT}/device/arm64-ios" \
-    "${KRKR_INSTALLED_ROOT}/device/arm64-ios" ios-arm64 ios-arm64
+    ios-arm64 ios-arm64 ios-arm64
 build_slice iphonesimulator "${RENPY_INSTALLED_ROOT}/simulator/arm64-ios-simulator" \
-    "${KRKR_INSTALLED_ROOT}/simulator/arm64-ios-simulator" ios-arm64-simulator ios-arm64_x86_64-simulator
+    ios-arm64-simulator ios-arm64-simulator ios-arm64_x86_64-simulator
 
 DEVICE_FRAMEWORK="${BUILD_ROOT}/iphoneos/Release-iphoneos/RenPyRuntime.framework"
 SIMULATOR_FRAMEWORK="${BUILD_ROOT}/iphonesimulator/Release-iphonesimulator/RenPyRuntime.framework"
@@ -378,6 +360,14 @@ for sdk in iphoneos iphonesimulator; do
         || grep -q "OpenGLES.framework" <<<"${libraries}"; then
         echo "${binary} must take OpenGL ES from MetalANGLE only:" >&2
         echo "${libraries}" >&2
+        exit 1
+    fi
+    if ! otool -L "${binary}" | grep "@rpath/FFmpeg.framework/FFmpeg" >/dev/null; then
+        echo "${binary} does not link the shared FFmpeg.framework." >&2
+        exit 1
+    fi
+    if nm -U "${binary}" | grep -E " _avcodec_(open2|send_packet)$" >/dev/null; then
+        echo "${binary} still contains its own FFmpeg." >&2
         exit 1
     fi
     if ! nm -gU "${binary}" | grep " _MikageRenPyStart$" >/dev/null; then

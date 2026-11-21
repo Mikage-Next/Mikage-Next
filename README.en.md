@@ -74,6 +74,7 @@ cd Mikage-Next
 brew install cmake xcodegen
 bash scripts/fetch-metalangle-ios.sh  # downloads build/MetalANGLE.xcframework (OpenGL ES on Metal)
 bash scripts/build-sdl3-ios.sh   # builds the shared build/SDL3.xcframework
+bash scripts/build-ffmpeg-ios.sh # builds the shared build/FFmpeg.xcframework
 bash scripts/build-krkr-ios.sh   # builds build/KRKRRuntime.xcframework
 bash scripts/build-ons-ios.sh    # builds build/ONSRuntime.xcframework
 bash scripts/build-artemis-ios.sh  # builds build/ArtemisRuntime.xcframework

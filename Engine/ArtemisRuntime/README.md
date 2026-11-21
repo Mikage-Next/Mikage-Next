@@ -6,7 +6,7 @@ Pinned inputs:
 
 - `Source/` submodule: `Mikage-Next/openartemis`, branch `mikage`, based on `main`
 - SDL3: the app's shared `build/SDL3.xcframework`
-- FFmpeg 7.1.2 for movies: the static libraries `scripts/build-krkr-ios.sh` installs with vcpkg for KiriKiri (`build/krkr-vcpkg-installed`). `scripts/build-artemis-ios.sh` installs that manifest itself when they are missing.
+- FFmpeg 7.1.2 for movies: the shared `build/FFmpeg.xcframework` from `scripts/build-ffmpeg-ios.sh`, which the app embeds once for every engine.
 - freetype, libpng, libjpeg-turbo, libvorbis, libtheora and PhysicsFS from openArtemis's own vcpkg manifest (baseline `8e8dfb4b`, the same as KiriKiri), installed into `build/artemis-vcpkg-installed`. Its iOS triplets are copies of KiriKiri's, so the packages both use come from the same binary cache.
 
 openArtemis is an SDL3 main-callback program, like KRKRSDL3. `Source/src/mikage` compiles its standalone host (`src/app/main.cpp`) into `ArtemisRuntime.framework` together with the shared `Engine/MikageSDLHost`, which drives the four SDL callbacks one frame per display refresh. `App/Engine/ArtemisSession.swift` runs it with the Swift host in `App/Engine/SDLHost`. `scripts/build-artemis-ios.sh` builds the device and Apple Silicon simulator slices, checks that each links the shared SDL3, carries no SDL code of its own and exports only the Mikage host API, then creates `build/ArtemisRuntime.xcframework`. Build SDL3 and KiriKiri first.

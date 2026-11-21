@@ -74,6 +74,7 @@ cd Mikage-Next
 brew install cmake xcodegen
 bash scripts/fetch-metalangle-ios.sh  # 下载 build/MetalANGLE.xcframework（基于 Metal 的 OpenGL ES）
 bash scripts/build-sdl3-ios.sh   # 生成各引擎共享的 build/SDL3.xcframework
+bash scripts/build-ffmpeg-ios.sh # 生成各引擎共享的 build/FFmpeg.xcframework
 bash scripts/build-krkr-ios.sh   # 生成 build/KRKRRuntime.xcframework
 bash scripts/build-ons-ios.sh    # 生成 build/ONSRuntime.xcframework
 bash scripts/build-artemis-ios.sh  # 生成 build/ArtemisRuntime.xcframework

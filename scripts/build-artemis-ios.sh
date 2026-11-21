@@ -2,8 +2,7 @@
 set -euo pipefail
 
 # Builds the pinned openArtemis fork as ArtemisRuntime.xcframework. It links
-# the shared SDL3.xcframework and the FFmpeg the KiriKiri build installs, so
-# build SDL3 first.
+# the shared SDL3.xcframework and FFmpeg.xcframework, so build those first.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -32,8 +31,6 @@ fi
 
 # The same vcpkg the KiriKiri build uses: the runner's, or a checkout at the
 # shared baseline.
-KRKR_SOURCE_DIR="${PROJECT_DIR}/Engine/KRKRRuntime/Source"
-KRKR_INSTALLED_ROOT="${PROJECT_DIR}/build/krkr-vcpkg-installed"
 VCPKG_BASELINE="8e8dfb4ba483886936ded5ca201b500b8d8b0096"
 if [[ -n "${VCPKG_ROOT:-}" && -x "${VCPKG_ROOT}/vcpkg" ]]; then
     :
@@ -51,28 +48,13 @@ else
 fi
 export VCPKG_ROOT VCPKG_DISABLE_METRICS=1
 
-# Movies are decoded with the FFmpeg the KiriKiri runtime installs through
-# vcpkg (scripts/build-krkr-ios.sh). Without its installed trees, install the
-# same manifest here; vcpkg reuses its binary cache when it has one.
-ensure_ffmpeg() {
-    local triplet="$1"
-    local installed_dir="$2"
-    if [[ -f "${installed_dir}/${triplet}/lib/libavformat.a" ]]; then
-        return
-    fi
-    mkdir -p "${installed_dir}"
-    "${VCPKG_ROOT}/vcpkg" install \
-        --x-manifest-root="${KRKR_SOURCE_DIR}" \
-        --x-install-root="${installed_dir}" \
-        --triplet="${triplet}"
-    if [[ ! -f "${installed_dir}/${triplet}/lib/libavformat.a" ]]; then
-        echo "vcpkg did not install FFmpeg for ${triplet}." >&2
-        exit 1
-    fi
-}
-
-ensure_ffmpeg arm64-ios "${KRKR_INSTALLED_ROOT}/device"
-ensure_ffmpeg arm64-ios-simulator "${KRKR_INSTALLED_ROOT}/simulator"
+# Movies are decoded with the shared FFmpeg.xcframework the app embeds once for
+# every engine (scripts/build-ffmpeg-ios.sh).
+FFMPEG_XCFRAMEWORK="${PROJECT_DIR}/build/FFmpeg.xcframework"
+if [[ ! -f "${FFMPEG_XCFRAMEWORK}/ios-arm64/FFmpeg.framework/FFmpeg" || ! -f "${FFMPEG_XCFRAMEWORK}/ios-arm64-simulator/FFmpeg.framework/FFmpeg" ]]; then
+    echo "Shared FFmpeg is missing. Run: bash scripts/build-ffmpeg-ios.sh" >&2
+    exit 1
+fi
 
 # openArtemis's own dependencies (freetype, libpng, libjpeg-turbo,
 # libvorbis, libtheora, physfs) come from its manifest, which leaves SDL3
@@ -119,7 +101,7 @@ build_slice() {
     local triplet="$2"
     local sdl3_slice="$3"
     local installed_dir="$4"
-    local ffmpeg_root="$5"
+    local ffmpeg_slice="$5"
     local build_dir="${BUILD_ROOT}/${sdk}"
     mkdir -p "${installed_dir}"
     "${VCPKG_ROOT}/vcpkg" install \
@@ -142,16 +124,16 @@ build_slice() {
         -DOA_BUILD_TOOLS=OFF \
         -DOA_ENABLE_TESTS=OFF \
         -DOA_SDL3_FRAMEWORK="${SDL3_XCFRAMEWORK}/${sdl3_slice}/SDL3.framework" \
-        -DOA_FFMPEG_ROOT="${ffmpeg_root}" \
+        -DOA_FFMPEG_FRAMEWORK="${FFMPEG_XCFRAMEWORK}/${ffmpeg_slice}/FFmpeg.framework" \
         -DMIKAGE_SDL_HOST_DIR="${SDL_HOST_DIR}" \
         ${cmake_launcher_args[@]+"${cmake_launcher_args[@]}"}
     cmake --build "${build_dir}" --config Release --target ArtemisRuntime --parallel
 }
 
 build_slice iphoneos arm64-ios ios-arm64 \
-    "${ARTEMIS_INSTALLED_ROOT}/device" "${KRKR_INSTALLED_ROOT}/device/arm64-ios"
+    "${ARTEMIS_INSTALLED_ROOT}/device" ios-arm64
 build_slice iphonesimulator arm64-ios-simulator ios-arm64-simulator \
-    "${ARTEMIS_INSTALLED_ROOT}/simulator" "${KRKR_INSTALLED_ROOT}/simulator/arm64-ios-simulator"
+    "${ARTEMIS_INSTALLED_ROOT}/simulator" ios-arm64-simulator
 
 DEVICE_FRAMEWORK="${BUILD_ROOT}/iphoneos/src/mikage/Release-iphoneos/ArtemisRuntime.framework"
 SIMULATOR_FRAMEWORK="${BUILD_ROOT}/iphonesimulator/src/mikage/Release-iphonesimulator/ArtemisRuntime.framework"
@@ -174,6 +156,14 @@ for framework in "${DEVICE_FRAMEWORK}" "${SIMULATOR_FRAMEWORK}"; do
     fi
     if ! otool -L "${binary}" | grep "@rpath/SDL3.framework/SDL3" >/dev/null; then
         echo "${binary} does not link the shared SDL3.framework." >&2
+        exit 1
+    fi
+    if ! otool -L "${binary}" | grep "@rpath/FFmpeg.framework/FFmpeg" >/dev/null; then
+        echo "${binary} does not link the shared FFmpeg.framework." >&2
+        exit 1
+    fi
+    if nm -U "${binary}" | grep -E " _avcodec_(open2|send_packet)$" >/dev/null; then
+        echo "${binary} still contains its own FFmpeg." >&2
         exit 1
     fi
     if ! nm -gU "${binary}" | grep " _MikageArtemisStart$" >/dev/null; then

@@ -237,7 +237,7 @@ jobs:
           key: krkr-vcpkg-tool-v1-${{ runner.os }}-${{ runner.arch }}-8e8dfb4ba483886936ded5ca201b500b8d8b0096
       # vcpkg verifies package ABIs before restoring an archive, so this
       # cache may safely fall back across manifest changes. It avoids
-      # rebuilding unchanged packages (especially FFmpeg) when only one
+      # rebuilding unchanged packages when only one
       # dependency input changes.
       - name: Cache KRKR vcpkg binary packages
         uses: actions/cache@v4
@@ -290,12 +290,34 @@ jobs:
         with:
           path: build/SDL3.xcframework
           key: ${{ steps.cache-sdl3.outputs.cache-primary-key }}
+      # One FFmpeg.xcframework is embedded in the app and shared by KiriKiri,
+      # ONScripter, openArtemis, Ren'Py and Siglus. It only depends on the
+      # pinned release tarball, the component list, its patches, this script
+      # and the toolchain.
+      - name: Restore shared FFmpeg framework
+        id: cache-ffmpeg
+        uses: actions/cache/restore@v4
+        with:
+          path: build/FFmpeg.xcframework
+          key: ffmpeg-framework-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-ffmpeg-ios.sh', 'Engine/FFmpeg/**') }}
+      - name: Build shared FFmpeg framework
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p build
+          set -o pipefail
+          bash scripts/build-ffmpeg-ios.sh 2>&1 | tee build/ffmpeg-build.log
+      - name: Save shared FFmpeg framework
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/FFmpeg.xcframework
+          key: ${{ steps.cache-ffmpeg.outputs.cache-primary-key }}
       - name: Restore KRKR runtime framework
         id: cache-krkr-runtime
         uses: actions/cache/restore@v4
         with:
           path: build/KRKRRuntime.xcframework
-          key: krkr-runtime-v3-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('Engine/KRKRRuntime/Source/**', 'Engine/MikageSDLHost/**', 'scripts/build-krkr-ios.sh', 'scripts/build-sdl3-ios.sh') }}-${{ steps.sdl3-revision.outputs.rev }}
+          key: krkr-runtime-v3-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('Engine/KRKRRuntime/Source/**', 'Engine/MikageSDLHost/**', 'scripts/build-krkr-ios.sh', 'scripts/build-sdl3-ios.sh', 'scripts/build-ffmpeg-ios.sh', 'Engine/FFmpeg/**') }}-${{ steps.sdl3-revision.outputs.rev }}
       - name: Build KRKR runtime framework
         if: steps.cache-krkr-runtime.outputs.cache-hit != 'true'
         run: |
@@ -310,14 +332,14 @@ jobs:
           key: ${{ steps.cache-krkr-runtime.outputs.cache-primary-key }}
       # ONScripter runs on the shared SDL3 through sdl2-compat, which its
       # CMake build fetches at a pinned commit along with SDL2_image,
-      # SDL2_mixer, SDL2_ttf and Lua. It decodes movies with the FFmpeg the
-      # KRKR step installs, so the key follows KRKR's vcpkg inputs.
+      # SDL2_mixer, SDL2_ttf and Lua. It decodes movies with the shared
+      # FFmpeg.xcframework, so the key follows its inputs.
       - name: Restore ONScripter runtime framework
         id: cache-ons-runtime
         uses: actions/cache/restore@v4
         with:
           path: build/ONSRuntime.xcframework
-          key: ons-runtime-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-ons-ios.sh', 'scripts/build-sdl3-ios.sh', 'Engine/KRKRRuntime/Source/vcpkg.json', 'Engine/KRKRRuntime/Source/vcpkg-configuration.json', 'Engine/KRKRRuntime/Source/vcpkg/ports/**', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios.cmake', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios-simulator.cmake') }}-${{ steps.ons-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
+          key: ons-runtime-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-ons-ios.sh', 'scripts/build-sdl3-ios.sh', 'scripts/build-ffmpeg-ios.sh', 'Engine/FFmpeg/**') }}-${{ steps.ons-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
       - name: Build ONScripter runtime framework
         if: steps.cache-ons-runtime.outputs.cache-hit != 'true'
         run: |
@@ -330,15 +352,15 @@ jobs:
         with:
           path: build/ONSRuntime.xcframework
           key: ${{ steps.cache-ons-runtime.outputs.cache-primary-key }}
-      # openArtemis links the shared SDL3 and the FFmpeg the KRKR step
-      # installs; its other dependencies come from its own vcpkg manifest,
-      # with triplets that match KRKR's so the binary cache is shared.
+      # openArtemis links the shared SDL3 and FFmpeg frameworks; its other
+      # dependencies come from its own vcpkg manifest, with triplets that
+      # match KRKR's so the binary cache is shared.
       - name: Restore openArtemis runtime framework
         id: cache-artemis-runtime
         uses: actions/cache/restore@v4
         with:
           path: build/ArtemisRuntime.xcframework
-          key: artemis-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-artemis-ios.sh', 'scripts/build-sdl3-ios.sh', 'Engine/MikageSDLHost/**', 'Engine/KRKRRuntime/Source/vcpkg.json', 'Engine/KRKRRuntime/Source/vcpkg-configuration.json', 'Engine/KRKRRuntime/Source/vcpkg/ports/**', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios.cmake', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios-simulator.cmake') }}-${{ steps.artemis-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
+          key: artemis-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-artemis-ios.sh', 'scripts/build-sdl3-ios.sh', 'Engine/MikageSDLHost/**', 'scripts/build-ffmpeg-ios.sh', 'Engine/FFmpeg/**') }}-${{ steps.artemis-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
       # openArtemis's own vcpkg packages are not in the KRKR archive cache
       # (that key rarely misses, so it is seldom saved again); keep its
       # installed trees on an exact key instead.
@@ -372,14 +394,14 @@ jobs:
           key: ${{ steps.cache-artemis-runtime.outputs.cache-primary-key }}
       # Ren'Py: CPython 3.12 cross-built for iOS, Ren'Py's Cython modules
       # and pyobjus in one framework, on the shared SDL3 and MetalANGLE, with
-      # the FFmpeg the KRKR step installs. A host Python 3.12 generates the
+      # the shared FFmpeg.xcframework. A host Python 3.12 generates the
       # C and builds CPython; it stays off PATH for the other steps.
       - name: Restore Ren'Py runtime framework
         id: cache-renpy-runtime
         uses: actions/cache/restore@v4
         with:
           path: build/RenPyRuntime.xcframework
-          key: renpy-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-renpy-ios.sh', 'Engine/RenPyRuntime/vcpkg-ports/**', 'scripts/build-sdl3-ios.sh', 'scripts/fetch-metalangle-ios.sh', 'Engine/SDL3/patches/**', 'Engine/KRKRRuntime/Source/vcpkg.json', 'Engine/KRKRRuntime/Source/vcpkg-configuration.json', 'Engine/KRKRRuntime/Source/vcpkg/ports/**', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios.cmake', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios-simulator.cmake') }}-${{ steps.renpy-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
+          key: renpy-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-renpy-ios.sh', 'Engine/RenPyRuntime/vcpkg-ports/**', 'scripts/build-sdl3-ios.sh', 'scripts/fetch-metalangle-ios.sh', 'Engine/SDL3/patches/**', 'scripts/build-ffmpeg-ios.sh', 'Engine/FFmpeg/**') }}-${{ steps.renpy-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
       - name: Set up host Python for Ren'Py
         id: renpy-host-python
         if: steps.cache-renpy-runtime.outputs.cache-hit != 'true'
@@ -426,13 +448,13 @@ jobs:
           path: build/RenPyRuntime.xcframework
           key: ${{ steps.cache-renpy-runtime.outputs.cache-primary-key }}
       # SiglusEngine: the siglus_rs fork (Rust, wgpu on Metal, kira audio)
-      # as a dynamic framework, with KiriKiri's FFmpeg linked in for H.264.
+      # as a dynamic framework, linking the shared FFmpeg.xcframework for H.264.
       - name: Restore Siglus runtime framework
         id: cache-siglus-runtime
         uses: actions/cache/restore@v4
         with:
           path: build/SiglusRuntime.xcframework
-          key: siglus-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-siglus-ios.sh', 'Engine/SiglusRuntime/H264Decoder.c') }}-${{ steps.siglus-revision.outputs.rev }}
+          key: siglus-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-siglus-ios.sh', 'Engine/SiglusRuntime/H264Decoder.c', 'scripts/build-ffmpeg-ios.sh', 'Engine/FFmpeg/**') }}-${{ steps.siglus-revision.outputs.rev }}
       - name: Install Rust for Siglus
         if: steps.cache-siglus-runtime.outputs.cache-hit != 'true'
         run: |

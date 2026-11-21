@@ -11,6 +11,12 @@ OUTPUT="${PROJECT_DIR}/build/KRKRRuntime.xcframework"
 SDL3_XCFRAMEWORK="${PROJECT_DIR}/build/SDL3.xcframework"
 SDL3_DEVICE_FRAMEWORK="${SDL3_XCFRAMEWORK}/ios-arm64/SDL3.framework"
 SDL3_SIMULATOR_FRAMEWORK="${SDL3_XCFRAMEWORK}/ios-arm64-simulator/SDL3.framework"
+# Shared FFmpeg built by scripts/build-ffmpeg-ios.sh, embedded once for every
+# engine that decodes with it. KRKRRuntime links it, so vcpkg's own FFmpeg (the
+# krkrsdl3_build manifest's default "ffmpeg" feature) is turned off below.
+FFMPEG_XCFRAMEWORK="${PROJECT_DIR}/build/FFmpeg.xcframework"
+FFMPEG_DEVICE_FRAMEWORK="${FFMPEG_XCFRAMEWORK}/ios-arm64/FFmpeg.framework"
+FFMPEG_SIMULATOR_FRAMEWORK="${FFMPEG_XCFRAMEWORK}/ios-arm64-simulator/FFmpeg.framework"
 # Engine-neutral SDL lifecycle (main-callback stepping, audio session, reset
 # between games) that every SDL engine runtime compiles in.
 SDL_HOST_DIR="${PROJECT_DIR}/Engine/MikageSDLHost"
@@ -30,6 +36,11 @@ fi
 
 if [[ ! -f "${SDL3_DEVICE_FRAMEWORK}/SDL3" || ! -f "${SDL3_SIMULATOR_FRAMEWORK}/SDL3" ]]; then
     echo "Shared SDL3 is missing. Run: bash scripts/build-sdl3-ios.sh" >&2
+    exit 1
+fi
+
+if [[ ! -f "${FFMPEG_DEVICE_FRAMEWORK}/FFmpeg" || ! -f "${FFMPEG_SIMULATOR_FRAMEWORK}/FFmpeg" ]]; then
+    echo "Shared FFmpeg is missing. Run: bash scripts/build-ffmpeg-ios.sh" >&2
     exit 1
 fi
 
@@ -111,6 +122,8 @@ cmake --preset "iOS Device Config" \
     -DKRKR_HOST_LIBRARY=ON \
     -DUSE_RENDER_METAL=ON \
     -DKRKR_SDL3_FRAMEWORK="${SDL3_DEVICE_FRAMEWORK}" \
+    -DKRKR_FFMPEG_FRAMEWORK="${FFMPEG_DEVICE_FRAMEWORK}" \
+    -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON \
     -DMIKAGE_SDL_HOST_DIR="${SDL_HOST_DIR}" \
     -DVCPKG_INSTALLED_DIR="${VCPKG_DEVICE_INSTALLED_DIR}" \
     "${cmake_launcher_args[@]}"
@@ -121,6 +134,8 @@ cmake --preset "iOS Simulator Config" \
     -DKRKR_HOST_LIBRARY=ON \
     -DUSE_RENDER_METAL=ON \
     -DKRKR_SDL3_FRAMEWORK="${SDL3_SIMULATOR_FRAMEWORK}" \
+    -DKRKR_FFMPEG_FRAMEWORK="${FFMPEG_SIMULATOR_FRAMEWORK}" \
+    -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON \
     -DMIKAGE_SDL_HOST_DIR="${SDL_HOST_DIR}" \
     -DVCPKG_INSTALLED_DIR="${VCPKG_SIMULATOR_INSTALLED_DIR}" \
     "${cmake_launcher_args[@]}"
@@ -147,6 +162,15 @@ for framework in "${DEVICE_FRAMEWORK}" "${SIMULATOR_FRAMEWORK}"; do
     fi
     if nm -U "${binary}" | grep "_OBJC_CLASS_\$_SDL_uikit" >/dev/null; then
         echo "${binary} still defines SDL UIKit classes." >&2
+        exit 1
+    fi
+    # Likewise FFmpeg comes from the shared FFmpeg.framework only.
+    if ! otool -L "${binary}" | grep "@rpath/FFmpeg.framework/FFmpeg" >/dev/null; then
+        echo "${binary} does not link the shared FFmpeg.framework." >&2
+        exit 1
+    fi
+    if nm -U "${binary}" | grep -E " _avcodec_(open2|send_packet)$" >/dev/null; then
+        echo "${binary} still contains its own FFmpeg." >&2
         exit 1
     fi
     # Each SDL engine runtime carries its own copy of the shared host, so the

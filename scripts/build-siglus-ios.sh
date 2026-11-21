@@ -5,8 +5,8 @@ set -euo pipefail
 # SiglusRuntime.xcframework: one dynamic framework per SDK holding the
 # siglus_scene_vm cdylib. It needs a Rust toolchain with the iOS targets
 # (rustup target add aarch64-apple-ios aarch64-apple-ios-sim). It does not use
-# SDL; FFmpeg's H.264 decoder is linked in for the UCI images some repacks put
-# in .g00 files (Engine/SiglusRuntime/H264Decoder.c).
+# SDL; FFmpeg's H.264 decoder (the shared FFmpeg.framework) decodes the UCI
+# images some repacks put in .g00 files (Engine/SiglusRuntime/H264Decoder.c).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -31,48 +31,14 @@ fi
 
 command -v cargo >/dev/null 2>&1 || { echo "cargo not found; install Rust with rustup." >&2; exit 1; }
 
-# The FFmpeg the KiriKiri runtime installs through vcpkg
-# (scripts/build-krkr-ios.sh). Without its installed trees, install the same
-# manifest here; vcpkg reuses its binary cache when it has one.
-KRKR_SOURCE_DIR="${PROJECT_DIR}/Engine/KRKRRuntime/Source"
-VCPKG_INSTALLED_ROOT="${PROJECT_DIR}/build/krkr-vcpkg-installed"
-VCPKG_BASELINE="8e8dfb4ba483886936ded5ca201b500b8d8b0096"
+# The shared FFmpeg.xcframework (scripts/build-ffmpeg-ios.sh) that the app
+# embeds once for every engine.
+FFMPEG_XCFRAMEWORK="${PROJECT_DIR}/build/FFmpeg.xcframework"
 H264_DECODER="${PROJECT_DIR}/Engine/SiglusRuntime/H264Decoder.c"
-
-ensure_ffmpeg() {
-    local triplet="$1"
-    local installed_dir="$2"
-    if [[ -f "${installed_dir}/${triplet}/lib/libavcodec.a" ]]; then
-        return
-    fi
-    if [[ -n "${VCPKG_ROOT:-}" && -x "${VCPKG_ROOT}/vcpkg" ]]; then
-        :
-    elif [[ -n "${VCPKG_INSTALLATION_ROOT:-}" && -x "${VCPKG_INSTALLATION_ROOT}/vcpkg" ]]; then
-        VCPKG_ROOT="${VCPKG_INSTALLATION_ROOT}"
-    else
-        VCPKG_ROOT="${PROJECT_DIR}/build/vcpkg-${VCPKG_BASELINE}"
-        if [[ ! -x "${VCPKG_ROOT}/vcpkg" ]]; then
-            git init "${VCPKG_ROOT}"
-            git -C "${VCPKG_ROOT}" remote add origin https://github.com/microsoft/vcpkg.git
-            git -C "${VCPKG_ROOT}" fetch --depth 1 origin "${VCPKG_BASELINE}"
-            git -C "${VCPKG_ROOT}" checkout --detach FETCH_HEAD
-            "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
-        fi
-    fi
-    export VCPKG_ROOT VCPKG_DISABLE_METRICS=1
-    mkdir -p "${installed_dir}"
-    "${VCPKG_ROOT}/vcpkg" install \
-        --x-manifest-root="${KRKR_SOURCE_DIR}" \
-        --x-install-root="${installed_dir}" \
-        --triplet="${triplet}"
-    if [[ ! -f "${installed_dir}/${triplet}/lib/libavcodec.a" ]]; then
-        echo "vcpkg did not install FFmpeg for ${triplet}." >&2
-        exit 1
-    fi
-}
-
-ensure_ffmpeg arm64-ios "${VCPKG_INSTALLED_ROOT}/device"
-ensure_ffmpeg arm64-ios-simulator "${VCPKG_INSTALLED_ROOT}/simulator"
+if [[ ! -f "${FFMPEG_XCFRAMEWORK}/ios-arm64/FFmpeg.framework/FFmpeg" || ! -f "${FFMPEG_XCFRAMEWORK}/ios-arm64-simulator/FFmpeg.framework/FFmpeg" ]]; then
+    echo "Shared FFmpeg is missing. Run: bash scripts/build-ffmpeg-ios.sh" >&2
+    exit 1
+fi
 
 export IPHONEOS_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}"
 export CARGO_TARGET_DIR="${BUILD_ROOT}/target"
@@ -81,7 +47,7 @@ build_slice() {
     local target="$1"
     local slice="$2"
     local sdk="$3"
-    local ffmpeg_root="$4"
+    local ffmpeg_framework="$4"
     local clang_target="$5"
     echo "Building ${CRATE} for ${target}"
     local sdk_path
@@ -91,24 +57,11 @@ build_slice() {
     mkdir -p "${BUILD_ROOT}/${slice}"
     xcrun --sdk "${sdk}" clang -c -O2 -Wall -Werror \
         -target "${clang_target}" -isysroot "${sdk_path}" \
-        -I "$(dirname "${HEADER}")" -I "${ffmpeg_root}/include" \
+        -I "$(dirname "${HEADER}")" -I "${ffmpeg_framework}/Headers" \
         "${H264_DECODER}" -o "${decoder}"
 
-    # FFmpeg's VideoToolbox code calls __isPlatformVersionAtLeast, which is in
-    # clang's builtins; rustc's link line does not bring them in.
-    local builtins
-    builtins="$(xcrun --sdk "${sdk}" clang -target "${clang_target}" -print-libgcc-file-name)"
-    if [[ ! -f "${builtins}" ]]; then
-        echo "clang builtins not found: ${builtins}" >&2
-        exit 1
-    fi
-
     local link_args=()
-    for arg in "${decoder}" "${ffmpeg_root}/lib/libavcodec.a" "${ffmpeg_root}/lib/libswresample.a" \
-        "${ffmpeg_root}/lib/libavutil.a" "${builtins}" \
-        -lz -lbz2 -liconv \
-        -framework AudioToolbox -framework CoreFoundation -framework CoreMedia \
-        -framework CoreVideo -framework VideoToolbox -framework Security; do
+    for arg in "${decoder}" -F "$(dirname "${ffmpeg_framework}")" -framework FFmpeg; do
         link_args+=(-C "link-arg=${arg}")
     done
 
@@ -169,12 +122,21 @@ EOF
             exit 1
         fi
     done
+    # FFmpeg comes from the shared framework, not a copy of its own.
+    if ! otool -L "${binary}" | grep "@rpath/FFmpeg.framework/FFmpeg" >/dev/null; then
+        echo "${binary} does not link the shared FFmpeg.framework." >&2
+        exit 1
+    fi
+    if nm -U "${binary}" | grep -E " _avcodec_(open2|send_packet)$" >/dev/null; then
+        echo "${binary} still contains its own FFmpeg." >&2
+        exit 1
+    fi
 }
 
 build_slice aarch64-apple-ios ios-arm64 iphoneos \
-    "${VCPKG_INSTALLED_ROOT}/device/arm64-ios" "arm64-apple-ios${DEPLOYMENT_TARGET}"
+    "${FFMPEG_XCFRAMEWORK}/ios-arm64/FFmpeg.framework" "arm64-apple-ios${DEPLOYMENT_TARGET}"
 build_slice aarch64-apple-ios-sim ios-arm64-simulator iphonesimulator \
-    "${VCPKG_INSTALLED_ROOT}/simulator/arm64-ios-simulator" "arm64-apple-ios${DEPLOYMENT_TARGET}-simulator"
+    "${FFMPEG_XCFRAMEWORK}/ios-arm64-simulator/FFmpeg.framework" "arm64-apple-ios${DEPLOYMENT_TARGET}-simulator"
 
 xcodebuild -create-xcframework \
     -framework "${BUILD_ROOT}/ios-arm64/${FRAMEWORK_NAME}.framework" \
