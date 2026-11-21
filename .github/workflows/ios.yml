@@ -379,7 +379,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: build/RenPyRuntime.xcframework
-          key: renpy-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-renpy-ios.sh', 'scripts/build-sdl3-ios.sh', 'scripts/fetch-metalangle-ios.sh', 'Engine/SDL3/patches/**', 'Engine/KRKRRuntime/Source/vcpkg.json', 'Engine/KRKRRuntime/Source/vcpkg-configuration.json', 'Engine/KRKRRuntime/Source/vcpkg/ports/**', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios.cmake', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios-simulator.cmake') }}-${{ steps.renpy-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
+          key: renpy-runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-renpy-ios.sh', 'Engine/RenPyRuntime/vcpkg-ports/**', 'scripts/build-sdl3-ios.sh', 'scripts/fetch-metalangle-ios.sh', 'Engine/SDL3/patches/**', 'Engine/KRKRRuntime/Source/vcpkg.json', 'Engine/KRKRRuntime/Source/vcpkg-configuration.json', 'Engine/KRKRRuntime/Source/vcpkg/ports/**', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios.cmake', 'Engine/KRKRRuntime/Source/vcpkg/triplets/arm64-ios-simulator.cmake') }}-${{ steps.renpy-revision.outputs.rev }}-${{ steps.sdl3-revision.outputs.rev }}
       - name: Set up host Python for Ren'Py
         id: renpy-host-python
         if: steps.cache-renpy-runtime.outputs.cache-hit != 'true'
@@ -392,7 +392,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/renpy-vcpkg-installed
-          key: renpy-vcpkg-installed-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('Engine/RenPyRuntime/Source/mikage/vcpkg.json', 'Engine/RenPyRuntime/Source/mikage/triplets/**') }}
+          key: renpy-vcpkg-installed-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('Engine/RenPyRuntime/Source/mikage/vcpkg.json', 'Engine/RenPyRuntime/Source/mikage/triplets/**', 'Engine/RenPyRuntime/vcpkg-ports/**') }}
       # CPython only changes with its patches and libraries; bump the key
       # when build_python in the script changes.
       - name: Cache Ren'Py's CPython builds

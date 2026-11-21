@@ -153,7 +153,10 @@ ensure_ffmpeg arm64-ios-simulator "${KRKR_INSTALLED_ROOT}/simulator"
 
 # Ren'Py's own libraries (SDL3_image, FreeType, HarfBuzz, FriBidi, assimp,
 # libffi, ...) from mikage/vcpkg.json. Its triplets are KiriKiri's plus a
-# cross-build host for libffi.
+# cross-build host for libffi. Engine/RenPyRuntime/vcpkg-ports holds ports
+# taken from newer vcpkg when the baseline's copy no longer downloads
+# (kubazip 0.3.14's GitHub archive changed its hash).
+RENPY_OVERLAY_PORTS="${PROJECT_DIR}/Engine/RenPyRuntime/vcpkg-ports"
 RENPY_INSTALLED_ROOT="${PROJECT_DIR}/build/renpy-vcpkg-installed"
 install_deps() {
     local triplet="$1"
@@ -162,6 +165,7 @@ install_deps() {
     "${VCPKG_ROOT}/vcpkg" install \
         --x-manifest-root="${MIKAGE_DIR}" \
         --x-install-root="${installed_dir}" \
+        --overlay-ports="${RENPY_OVERLAY_PORTS}" \
         --overlay-triplets="${MIKAGE_DIR}/triplets" \
         --triplet="${triplet}"
 }
