@@ -228,10 +228,9 @@ public:
     void UpdateTargetTexture(void*,const uint8_t*,int,int,int) override {}
     void* CreateTexture(int,int) override { return nullptr; }
     void UpdateTexture(void*,const uint8_t*,int,int,int) override {} void DestroyTexture(void*) override {}
-    void SetMask(void*) override {} void SetBlendMode(int,const float*) override {}
+    void SetMask(void*) override {} void SetBlend(int,float,const float*,const float*) override {}
     void DrawMesh(const float*,int,const uint16_t*,int,void*,float,const float*) override {}
-    void LayerSetBlend(int,float,const float*) override {}
-    void LayerDrawRect(void*,float,float,float,float,float,float,float,float) override {}
+    void DrawRect(void*,float,float,float,float,float,float,float,float) override {}
     bool SupportsLayerOperations() const override { return true; }
     bool SupportsLayerTransitions() const override { return true; }
     bool OperateLayerTransition(const TVPLayerTransitionOperation& op,void* target,void* source1,void* source2) override {

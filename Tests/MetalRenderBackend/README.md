@@ -19,12 +19,12 @@ This executable links the production Metal and software offscreen backends
 without the game engine. On macOS it verifies:
 
 - padded RGBA uploads, row order, target clear/preserve and readback;
-- all 11 compositor LayerDrawRect methods against the software backend at six opacity values,
+- all 11 compositor RenderManager `DrawRect` methods against the software backend at six opacity values,
   including clipped rectangles and reversed UVs (maximum byte error: 1);
 - mesh blend modes, color modulation and the 127/128 mask threshold;
 - target clear and consecutive same-target mesh/deformation draws sharing one render encoder;
 - clear ordering across target switches, repeated clears, blits, compute and readback;
-- clipped `LayerDrawRect` copying at most its affected pixels when a snapshot is needed;
+- clipped `DrawRect` copying at most its affected pixels when a snapshot is needed;
 - attachment self-copy, on-demand screenshot color order and letterboxing;
 - destruction and recreation of the Metal view on the same SDL window.
 

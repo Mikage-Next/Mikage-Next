@@ -290,14 +290,14 @@ void LayerTests(iTVPRenderBackend& gpu)
                 gpu.UpdateTargetTexture(gt, dst.data(), 7, 5, 32);
                 cpu.UpdateTargetTexture(ct, dst.data(), 7, 5, 32);
                 gpu.SetTarget(gt); cpu.SetTarget(ct);
-                gpu.LayerSetBlend(method, opa / 255.0f, fill);
-                cpu.LayerSetBlend(method, opa / 255.0f, fill);
+                gpu.SetBlend(iTVPRenderBackend::BM_COPY + method, opa / 255.0f, fill, nullptr);
+                cpu.SetBlend(iTVPRenderBackend::BM_COPY + method, opa / 255.0f, fill, nullptr);
                 if (crop) {
-                    gpu.LayerDrawRect(gs, -1.25f, 0.5f, 6.75f, 3.25f, 0.8f, 0.2f, 0.1f, 0.9f);
-                    cpu.LayerDrawRect(cs, -1.25f, 0.5f, 6.75f, 3.25f, 0.8f, 0.2f, 0.1f, 0.9f);
+                    gpu.DrawRect(gs, -1.25f, 0.5f, 6.75f, 3.25f, 0.8f, 0.2f, 0.1f, 0.9f);
+                    cpu.DrawRect(cs, -1.25f, 0.5f, 6.75f, 3.25f, 0.8f, 0.2f, 0.1f, 0.9f);
                 } else {
-                    gpu.LayerDrawRect(gs, 0, 0, 7, 5);
-                    cpu.LayerDrawRect(cs, 0, 0, 7, 5, 0, 0, 1, 1);
+                    gpu.DrawRect(gs, 0, 0, 7, 5);
+                    cpu.DrawRect(cs, 0, 0, 7, 5, 0, 0, 1, 1);
                 }
                 std::cout << "Layer " << method << " opacity " << opa << " crop " << crop << '\n';
                 Compare(Read(gpu, gt), Read(cpu, ct), 1);
@@ -308,19 +308,19 @@ void LayerTests(iTVPRenderBackend& gpu)
     // devices without Tier-2 read/write support (Tier-2 needs no snapshot).
     gpu.UpdateTargetTexture(gt, dst.data(), 7, 5, 32);
     cpu.UpdateTargetTexture(ct, dst.data(), 7, 5, 32);
-    gpu.LayerSetBlend(iTVPRenderBackend::LBM_ALPHA, 1, nullptr);
-    cpu.LayerSetBlend(iTVPRenderBackend::LBM_ALPHA, 1, nullptr);
+    gpu.SetBlend(iTVPRenderBackend::BM_ALPHA, 1, nullptr, nullptr);
+    cpu.SetBlend(iTVPRenderBackend::BM_ALPHA, 1, nullptr, nullptr);
     const auto snapshotBytes = krkrsdl3::g_layerRectSnapshotBytes;
-    gpu.LayerDrawRect(gs, 1, 1, 2, 2, 0, 0, 1, 1);
-    cpu.LayerDrawRect(cs, 1, 1, 2, 2, 0, 0, 1, 1);
+    gpu.DrawRect(gs, 1, 1, 2, 2, 0, 0, 1, 1);
+    cpu.DrawRect(cs, 1, 1, 2, 2, 0, 0, 1, 1);
     Require(krkrsdl3::g_layerRectSnapshotBytes - snapshotBytes <= 2 * 2 * 4,
-            "clipped LayerDrawRect copied more than its affected rectangle");
+            "clipped DrawRect copied more than its affected rectangle");
     Compare(Read(gpu, gt), Read(cpu, ct), 1);
     // A copy of the same attachment must sample a snapshot, never a read/write hazard.
     gpu.UpdateTargetTexture(gt, dst.data(), 7, 5, 32);
     auto before = Read(gpu, gt);
-    gpu.LayerSetBlend(iTVPRenderBackend::LBM_COPY, 1, nullptr);
-    gpu.LayerDrawRect(gpu.GetTargetTexture(gt), 0, 0, 7, 5);
+    gpu.SetBlend(iTVPRenderBackend::BM_COPY, 1, nullptr, nullptr);
+    gpu.DrawRect(gpu.GetTargetTexture(gt), 0, 0, 7, 5);
     Compare(Read(gpu, gt), before, 0);
     gpu.DestroyTexture(gs); cpu.DestroyTexture(cs);
     gpu.DestroyTarget(gt); cpu.DestroyTarget(ct);
@@ -348,7 +348,7 @@ void MeshTests(iTVPRenderBackend& gpu)
     for (int mode : {0, 1, 3, 4, 6, 21}) {
         gpu.UpdateTargetTexture(target, background.data(), 7, 5, 28);
         gpu.SetMask(mask);
-        gpu.SetBlendMode(mode, uniform);
+        gpu.SetBlend(mode, 1.0f, uniform, nullptr);
         gpu.DrawMesh(vertices, 4, indices, 6, src, 0.75f, modulation);
         auto actual = Read(gpu, target);
         for (int y = 0; y < 5; ++y) for (int x = 0; x < 7; ++x) {
@@ -383,7 +383,7 @@ void MeshBatchTests(iTVPRenderBackend& gpu)
     gpu.UpdateTexture(source, pixel, 1, 1, 4);
     gpu.SetTarget(target);
     gpu.SetMask(nullptr);
-    gpu.SetBlendMode(0, nullptr);
+    gpu.SetBlend(0, 1.0f, nullptr, nullptr);
     const int before = krkrsdl3::g_renderEncoders;
     gpu.ClearTarget(true);
     for (int i = 0; i < 12; ++i)
@@ -411,7 +411,7 @@ void ClearMeshOrderingTests(iTVPRenderBackend& gpu)
         std::memcpy(drawnPixels.data() + i, pixel, 4);
     gpu.UpdateTexture(source, pixel, 1, 1, 4);
     gpu.SetMask(nullptr);
-    gpu.SetBlendMode(0, nullptr);
+    gpu.SetBlend(0, 1.0f, nullptr, nullptr);
 
     // Switching targets must preserve the preceding clear/draw pass. Clearing
     // an already active target must discard its previous draws, even twice.
@@ -449,8 +449,8 @@ void ClearMeshOrderingTests(iTVPRenderBackend& gpu)
     // the destination, rather than the contents from before that clear.
     gpu.UpdateTargetTexture(target, drawnPixels.data(), 7, 5, 28);
     gpu.ClearTarget(true);
-    gpu.LayerSetBlend(3, 1.0f, nullptr);
-    gpu.LayerDrawRect(source, 0, 0, 7, 5, 0, 0, 1, 1);
+    gpu.SetBlend(iTVPRenderBackend::BM_ADD_RM, 1.0f, nullptr, nullptr);
+    gpu.DrawRect(source, 0, 0, 7, 5, 0, 0, 1, 1);
     auto computePixels = drawnPixels;
     for (size_t i = 0; i < computePixels.size(); i += 4) {
         for (size_t c = 0; c < 3; ++c) computePixels[i + c] = (pixel[c] * 255) >> 8;
@@ -527,7 +527,7 @@ void DeformChainMatchesCPUTests(iTVPRenderBackend& gpu)
     Require(source && cpuTarget && gpuTarget, "deformation comparison resources");
     gpu.UpdateTexture(source, pattern.data(), 16, 16, 64);
     gpu.SetMask(nullptr);
-    gpu.SetBlendMode(0, nullptr);
+    gpu.SetBlend(0, 1.0f, nullptr, nullptr);
     gpu.SetTarget(cpuTarget);
     gpu.ClearTarget(true);
     gpu.DrawMesh(reinterpret_cast<const float*>(vertices.data()), int(vertices.size()),

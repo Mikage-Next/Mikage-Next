@@ -113,7 +113,7 @@ public:
     void UpdateTexture(void*, const uint8_t*, int, int, int) override {}
     void DestroyTexture(void*) override {}
     void SetMask(void* mask) override { events.emplace_back('M', mask); }
-    void SetBlendMode(int, const float*) override {}
+    void SetBlend(int, float, const float*, const float*) override {}
     void DrawMesh(const float* data, int count, const uint16_t*, int, void*, float opa, const float*) override {
         ++draws; opacity = opa; events.emplace_back('D', nullptr); auto* v = reinterpret_cast<const EmoteVertex*>(data); vertices.assign(v, v + count);
     }
@@ -121,8 +121,7 @@ public:
     bool DrawDeformedMesh(int, int, const krkrsdl3::TVPMeshDeformSurface*, int, void*, float opa, const float*) override {
         ++draws; opacity = opa; events.emplace_back('D', nullptr); return true;
     }
-    void LayerSetBlend(int, float, const float*) override {}
-    void LayerDrawRect(void*, float, float, float, float, float, float, float, float) override {}
+    void DrawRect(void*, float, float, float, float, float, float, float, float) override {}
 };
 
 struct Fixture {

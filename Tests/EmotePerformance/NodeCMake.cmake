@@ -14,7 +14,8 @@ if(NOT EMOTE_GLM_INCLUDE_DIR)
     set(EMOTE_GLM_INCLUDE_DIR "${emote_glm_SOURCE_DIR}")
 endif()
 add_executable(emote-node-tests "${CMAKE_CURRENT_LIST_DIR}/NodeTests.cpp"
-    "${NODE_CORE}/plugins/emoteplayer/emoterunner.cpp")
+    "${NODE_CORE}/plugins/emoteplayer/emoterunner.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../Support/RenderBackendBase.cpp")
 target_compile_features(emote-node-tests PRIVATE cxx_std_17)
 target_include_directories(emote-node-tests PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/NodeStubs" "${EMOTE_GLM_INCLUDE_DIR}"

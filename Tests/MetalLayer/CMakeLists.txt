@@ -99,6 +99,7 @@ add_custom_command(OUTPUT "${GENERATED_AFFINE_MATH}"
     DEPENDS "${UNIV_SHADER_SOURCE}" "${CMAKE_CURRENT_LIST_DIR}/extract-affine-math.py"
     VERBATIM)
 add_executable(metal-layer-tests MetalLayerTests.cpp BitmapOverwriteTests.cpp TriangleProfileTests.cpp TestPlatform.cpp
+    ../Support/RenderBackendBase.cpp
     PrimaryCompletionTests.cpp "${GENERATED_PRIMARY_COMPLETION}"
     CapabilityAuditTests.cpp CompilationFailureTests.cpp OperationContractTests.cpp C0ProfileTests.cpp
     P1AShaderTests.cpp

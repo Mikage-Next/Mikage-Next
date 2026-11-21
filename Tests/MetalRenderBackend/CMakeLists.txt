@@ -18,6 +18,7 @@ add_executable(metal-render-tests
     StaticPresentationHarnessTests.cpp
     TransitionCacheTests.cpp
     MetalRenderBackendTests.cpp
+    ../Support/RenderBackendBase.cpp
     "${CORE}/core/render/backend/SWRenderBackend.cpp")
 # emotegeometry.h (the CPU reference for GPU mesh deformation) needs glm.
 find_path(METAL_TEST_GLM_INCLUDE_DIR glm/glm.hpp)
