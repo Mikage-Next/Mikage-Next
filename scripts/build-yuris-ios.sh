@@ -104,6 +104,12 @@ EOF
 build_slice aarch64-apple-ios ios-arm64 iphoneos
 build_slice aarch64-apple-ios-sim ios-arm64-simulator iphonesimulator
 
+# Drop local symbols: they only take space in the app (several MB per
+# framework). Exported symbols, which the app and dyld use, stay.
+for framework in "${BUILD_ROOT}/ios-arm64/${FRAMEWORK_NAME}.framework" "${BUILD_ROOT}/ios-arm64-simulator/${FRAMEWORK_NAME}.framework"; do
+    strip -x "${framework}/$(basename "${framework}" .framework)"
+done
+
 xcodebuild -create-xcframework \
     -framework "${BUILD_ROOT}/ios-arm64/${FRAMEWORK_NAME}.framework" \
     -framework "${BUILD_ROOT}/ios-arm64-simulator/${FRAMEWORK_NAME}.framework" \

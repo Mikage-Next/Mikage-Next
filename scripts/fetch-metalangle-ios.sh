@@ -64,6 +64,12 @@ thin_slice() {
 thin_slice ios-arm64_armv7 arm64
 thin_slice ios-arm64_i386_x86_64-simulator arm64 x86_64
 
+# Drop local symbols: they only take space in the app (several MB per
+# framework). Exported symbols, which the app and dyld use, stay.
+for framework in "${WORK}/thin/ios-arm64_armv7/MetalANGLE.framework" "${WORK}/thin/ios-arm64_i386_x86_64-simulator/MetalANGLE.framework"; do
+    strip -x "${framework}/$(basename "${framework}" .framework)"
+done
+
 xcodebuild -create-xcframework \
     -framework "${WORK}/thin/ios-arm64_armv7/MetalANGLE.framework" \
     -framework "${WORK}/thin/ios-arm64_i386_x86_64-simulator/MetalANGLE.framework" \

@@ -37,6 +37,9 @@ command -v java >/dev/null 2>&1 || { echo "java not found; ruffle_core's build s
 
 export IPHONEOS_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}"
 export CARGO_TARGET_DIR="${BUILD_ROOT}/target"
+# The fork leaves [profile.release] at Cargo's defaults (16 codegen units, no
+# LTO). One unit with thin LTO makes the framework noticeably smaller.
+export CARGO_PROFILE_RELEASE_LTO=thin CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
 
 build_slice() {
     local target="$1"
@@ -110,6 +113,12 @@ EOF
 
 build_slice aarch64-apple-ios ios-arm64 iphoneos
 build_slice aarch64-apple-ios-sim ios-arm64-simulator iphonesimulator
+
+# Drop local symbols: they only take space in the app (several MB per
+# framework). Exported symbols, which the app and dyld use, stay.
+for framework in "${BUILD_ROOT}/ios-arm64/${FRAMEWORK_NAME}.framework" "${BUILD_ROOT}/ios-arm64-simulator/${FRAMEWORK_NAME}.framework"; do
+    strip -x "${framework}/$(basename "${framework}" .framework)"
+done
 
 xcodebuild -create-xcframework \
     -framework "${BUILD_ROOT}/ios-arm64/${FRAMEWORK_NAME}.framework" \

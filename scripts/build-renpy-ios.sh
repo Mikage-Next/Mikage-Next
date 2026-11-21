@@ -385,6 +385,12 @@ for sdk in iphoneos iphonesimulator; do
 done
 rm -f "${SOURCE_DIR}/renpy/vc_version.py"
 
+# Drop local symbols: they only take space in the app (several MB per
+# framework). Exported symbols, which the app and dyld use, stay.
+for framework in "${DEVICE_FRAMEWORK}" "${SIMULATOR_FRAMEWORK}"; do
+    strip -x "${framework}/$(basename "${framework}" .framework)"
+done
+
 xcodebuild -create-xcframework \
     -framework "${DEVICE_FRAMEWORK}" \
     -framework "${SIMULATOR_FRAMEWORK}" \
