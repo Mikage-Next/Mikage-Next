@@ -45,7 +45,7 @@ enum SystemFontExport {
         let directory = caches.appendingPathComponent("Mikage/Fonts", isDirectory: true)
         let system = ProcessInfo.processInfo.operatingSystemVersionString
             .filter { $0.isLetter || $0.isNumber || $0 == "." }
-        let url = directory.appendingPathComponent("\(name)-v3-\(system).ttf")
+        let url = directory.appendingPathComponent("\(name)-v4-\(system).ttf")
         if FileManager.default.fileExists(atPath: url.path) { return url }
         let started = CFAbsoluteTimeGetCurrent()
         guard let exported = trueTypeData(name) else {
@@ -244,7 +244,8 @@ enum SystemFontExport {
 
         let tables: [(tag: String, data: Data)] = [
             ("cmap", cmap), ("glyf", glyf), ("head", head), ("hhea", hhea),
-            ("hmtx", hmtx), ("loca", loca), ("maxp", maxp), ("post", post),
+            ("hmtx", hmtx), ("loca", loca), ("maxp", maxp), ("name", nameTable(name)),
+            ("post", post),
         ]
         return (sfnt(tables), order.count)
     }
@@ -311,6 +312,30 @@ enum SystemFontExport {
         }
         close()
         return contours
+    }
+
+    /// Family, style, full and PostScript names, all the face's PostScript
+    /// name, as Windows Unicode (US English) records. Parsers such as
+    /// fontdb skip a face without a family name.
+    private static func nameTable(_ name: String) -> Data {
+        let records: [(id: UInt16, text: String)] = [(1, name), (2, "Regular"), (4, name), (6, name)]
+        let strings = records.map { Data($0.text.utf16.flatMap { [UInt8($0 >> 8), UInt8($0 & 0xFF)] }) }
+        var table = Data()
+        table.appendBE(UInt16(0))
+        table.appendBE(UInt16(records.count))
+        table.appendBE(UInt16(6 + records.count * 12))
+        var offset = 0
+        for (record, string) in zip(records, strings) {
+            table.appendBE(UInt16(3))
+            table.appendBE(UInt16(1))
+            table.appendBE(UInt16(0x0409))
+            table.appendBE(record.id)
+            table.appendBE(UInt16(string.count))
+            table.appendBE(UInt16(offset))
+            offset += string.count
+        }
+        for string in strings { table.append(string) }
+        return table
     }
 
     /// Tables packed into one TrueType file.
