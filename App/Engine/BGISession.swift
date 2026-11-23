@@ -99,7 +99,8 @@ final class NativeBGISession: NSObject, KRKRSession {
 
         state = .starting
         let gbk = configuration.textEncoding == .gbk
-        let font = await Self.textFont()
+        let fonts = await Self.textFonts()
+        let font = fonts.first
         configureAudioSession(respectSilentMode: configuration.respectSilentMode)
 
         // The game writes its saves (BGI.gdb, UserData...) to the game's
@@ -117,11 +118,13 @@ final class NativeBGISession: NSObject, KRKRSession {
 
         // The game's own font (font.ttf) draws its text, PingFang what it
         // lacks; Chinese patches re-code their text into codes only their
-        // font draws. Should the engine refuse it, start with PingFang alone.
+        // font draws. Should the engine refuse it, start with PingFang, with
+        // Hiragino Sans for the symbols PingFang lacks.
         let gameFont = GameScanner.bgiGameFont(in: gameDirectory)
         var attempts: [(path: String, face: UInt32, fallback: (path: String, face: UInt32)?)] = []
         if let gameFont { attempts.append((gameFont.path, 0, font)) }
-        attempts.append((font?.path ?? "", font?.face ?? 0, nil))
+        attempts.append((font?.path ?? "", font?.face ?? 0, fonts.dropFirst().first))
+        if fonts.count > 1 { attempts.append((font?.path ?? "", font?.face ?? 0, nil)) }
 
         var created: UInt64 = 0
         var status: Int32 = -1
@@ -494,22 +497,25 @@ final class NativeBGISession: NSObject, KRKRSession {
         }
     }
 
-    /// The one face ethornell-rs draws all text with. As for Siglus and FVP,
-    /// PingFang (Traditional on Traditional Chinese devices) stands in for the
-    /// MS fonts the games ask for, for Chinese translations and Japanese
-    /// originals alike; Hiragino Sans if PingFang can't be loaded.
-    private static func textFont() async -> (path: String, face: UInt32)? {
+    /// The faces ethornell-rs draws text with, main face first. As for
+    /// Siglus and FVP, PingFang (Traditional on Traditional Chinese devices)
+    /// stands in for the MS fonts the games ask for, for Chinese translations
+    /// and Japanese originals alike. Hiragino Sans follows: it draws Japanese
+    /// symbols PingFang lacks, and is the main face if PingFang can't be
+    /// loaded.
+    private static func textFonts() async -> [(path: String, face: UInt32)] {
         let main = Locale.preferredLanguages.first.map(SystemFontExport.prefersTraditionalChinese) == true
             ? "PingFangTC-Regular" : "PingFangSC-Regular"
         // Rebuilding a face takes a few seconds the first time.
-        return await Task.detached(priority: .userInitiated) { () -> (path: String, face: UInt32)? in
+        return await Task.detached(priority: .userInitiated) { () -> [(path: String, face: UInt32)] in
+            var fonts: [(path: String, face: UInt32)] = []
             for name in [main, "HiraginoSans-W3"] {
                 guard let file = SystemFontExport.fontFiles(name).first else { continue }
                 let face = faceIndex(of: file.face, in: file.path)
                 AppDiagnostics.shared.event("bridge", "ethornell.font", ["name": name, "path": file.path, "face": String(face)])
-                return (file.path, face)
+                fonts.append((file.path, face))
             }
-            return nil
+            return fonts
         }.value
     }
 
