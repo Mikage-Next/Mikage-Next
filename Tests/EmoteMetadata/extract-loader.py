@@ -35,6 +35,12 @@ out.mkdir(parents=True, exist_ok=True)
 shared_start = source.index("struct EmoteDecodedResource")
 shared_end = source.index("#pragma region Base", shared_start)
 (out / "ProductionSharedResource.inc").write_text(source[shared_start:shared_end], encoding="utf-8")
+# lzfs:// storages unwrap LZ4 in the storage layer (plugins/lzfs.cpp), not
+# in emotefile::load; the fixture's TVPCreateStream runs that decoder.
+lzfs = (args.source.parent.parent / "lzfs.cpp").read_text(encoding="utf-8")
+lz4_start = lzfs.index("namespace EmoteLz4")
+lz4_end = lzfs.index("} // namespace EmoteLz4", lz4_start) + len("} // namespace EmoteLz4")
+(out / "ProductionLz4.inc").write_text(lzfs[lz4_start:lz4_end] + "\n", encoding="utf-8")
 signatures = [
     "emotefile::emotefile()", "emotefile::~emotefile()", "void emotefile::setSeed(",
     "void emotefile::setFun(", "bool emotefile::load(",

@@ -142,16 +142,18 @@ void coldWarmAndLifetime(unsigned container, unsigned version = 3)
     const auto raw = fixture.buildFullFile(sampleRoot(), version);
     loaderFiles["canonical/game.xp3>model.psb"] = container == 1 ? lz4Container(raw) : container == 2 ? mdfContainer(raw) : raw;
     loaderAliases["alias/model.psb"] = "canonical/game.xp3>model.psb";
+    // LZ4 PSBs are opened through the lzfs storage, which unwraps the frame.
+    const ttstr prefix = container == 1 ? TJS_N("lzfs://./") : TJS_N("");
     std::weak_ptr<const emoteplayer::EmoteDecodedResource> weak;
     {
         emoteplayer::emotefile first;
-        require(first.load(TJS_N("canonical/game.xp3>model.psb")), "cold resource load failed");
+        require(first.load(prefix + TJS_N("canonical/game.xp3>model.psb")), "cold resource load failed");
         require(!first.WasSharedCacheHit(), "first load was marked a shared hit");
         require(marker(first) == "mark-A", "production load decoded wrong metadata");
         first._metadata->variable = 19;
         const auto treesBefore = loaderTreesCreated;
         emoteplayer::emotefile second;
-        require(second.load(TJS_N("alias/model.psb")), "warm resource load failed");
+        require(second.load(prefix + TJS_N("alias/model.psb")), "warm resource load failed");
         require(second.WasSharedCacheHit(), "alias/canonical shared lookup missed");
         require(loaderOpens["canonical/game.xp3>model.psb"] == 1, "warm load reopened the resource");
         require(loaderTreesCreated == treesBefore + 1, "warm load reused a runtime animation tree");
@@ -189,7 +191,7 @@ void coldWarmAndLifetime(unsigned container, unsigned version = 3)
     require(weak.expired(), "decoded resource outlived cache and final player");
     require(loaderLiveTrees == 0 && loaderLiveStreams == 0, "resource load leaked streams or runtime trees");
     emoteplayer::emotefile afterReset;
-    require(afterReset.load(TJS_N("canonical/game.xp3>model.psb")) && !afterReset.WasSharedCacheHit(),
+    require(afterReset.load(prefix + TJS_N("canonical/game.xp3>model.psb")) && !afterReset.WasSharedCacheHit(),
             "session reset left a stale shared cache entry");
     require(loaderOpens["canonical/game.xp3>model.psb"] == 2, "reset did not force storage reload");
 }
@@ -595,7 +597,7 @@ int main()
         compactTrimEvictsLeastRecentlyUsed();
         callbackAndWorkLayerSessionLifetime();
         resetFixture();
-        std::cout << "PASS: production Emote load/cache integration, full PSB tables, raw/LZ4/MDF cold-warm loads, "
+        std::cout << "PASS: production Emote load/cache integration, full PSB tables, raw/lzfs LZ4/MDF cold-warm loads, "
                      "independent trees/cursors, read-only data, seed/custom-decrypt isolation, compact trim, reset, "
                      "50 session callback/context lifetimes and work-layer rebuilds\n";
         return 0;

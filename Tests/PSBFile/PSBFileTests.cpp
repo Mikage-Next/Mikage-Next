@@ -238,7 +238,7 @@ std::vector<std::string> failure(bool on, Failure mode) {
     nullOpen = mode == Failure::Null; failOpen = mode == Failure::Open; failRead = mode == Failure::Read;
     if (mode == Failure::Short) input = {1, 2, 3};
     if (mode == Failure::MDF) input = {'M', 'D', 'F', 0, 8, 0, 0, 0, 0, 0};
-    if (mode == Failure::Version) { input[4] = 4; input[5] = 0; }
+    if (mode == Failure::Version) { input[4] = 5; input[5] = 0; }
     tTJS vm; DrainOnExit drain; install(vm); bool thrown = false;
     vm.ExecScript("var p=void;");
     try { vm.ExecScript("p=new PSBFile('fixture.scn');", nullptr, nullptr, "failure.tjs"); }
@@ -393,7 +393,7 @@ void failedReload() {
             vm.ExecScript("var p=new PSBFile('fixture.scn');");
             require(media->CheckExistentStorage("fixture.scn/a.txt"), "loaded PSB not served");
             const Bytes good = input;
-            if (throwing) failRead = true; else { input[4] = 4; input[5] = 0; }
+            if (throwing) failRead = true; else { input[4] = 5; input[5] = 0; }
             bool thrown = false;
             try { require(evaluate(vm, "return p.load('fixture.scn')?'ok':'failed';") == "failed",
                           "corrupt reload succeeded"); }

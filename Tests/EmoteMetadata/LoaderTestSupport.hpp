@@ -56,13 +56,23 @@ ttstr TVPGetPlacedPath(const ttstr& path)
     auto alias = loaderAliases.find(path.AsStdString());
     return alias == loaderAliases.end() ? path : ttstr(alias->second);
 }
+#include "ProductionLz4.inc"
 tTJSBinaryStream* TVPCreateStream(const ttstr& path)
 {
-    const auto canonical = TVPGetPlacedPath(path).AsStdString();
+    // "lzfs://./name" goes through the lzfs storage media, which opens the
+    // member and unwraps an LZ4 frame (LZFSMedia::Open in plugins/lzfs.cpp).
+    const bool lzfs = path.StartsWith(TJS_N("lzfs://./"));
+    const ttstr member = lzfs ? path.SubString(9, path.length() - 9) : path;
+    const auto canonical = TVPGetPlacedPath(member).AsStdString();
     ++loaderOpens[canonical];
     auto found = loaderFiles.find(canonical);
     if (found == loaderFiles.end()) throw std::runtime_error("fixture resource not found");
-    return new tTVPMemoryStream(found->second.data(), static_cast<tjs_uint>(found->second.size()));
+    tTJSBinaryStream* stream =
+        new tTVPMemoryStream(found->second.data(), static_cast<tjs_uint>(found->second.size()));
+    if (lzfs && found->second.size() >= 4 &&
+        EmoteLz4::IsLz4Frame(reinterpret_cast<const char*>(found->second.data())))
+        return EmoteLz4::GetLz4Stream(stream);
+    return stream;
 }
 
 // Custom decrypt callbacks are real TJS closures; only the storage-facing byte
