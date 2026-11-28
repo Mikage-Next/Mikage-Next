@@ -271,7 +271,7 @@ final class AppModel: ObservableObject {
         Self.size(displayedGames.reduce(0) { $0 + $1.byteCount })
     }
 
-    static func size(_ count: Int64) -> String {
+    nonisolated static func size(_ count: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: count, countStyle: .file)
     }
 
