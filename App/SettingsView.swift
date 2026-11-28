@@ -10,6 +10,7 @@ struct SettingsView: View {
     /// caught while that page is closed.
     @State private var diagnosticError: String?
     @State private var showingWelcome = false
+    @State private var storageReport: StorageReport?
 
     var body: some View {
         NavigationStack {
@@ -24,33 +25,29 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Picker("Cover Layout", selection: $model.settings.coverLayout) {
-                        ForEach(CoverLayout.allCases, id: \.self) {
-                            Text($0.displayName).tag($0)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                } header: {
-                    Text("Library")
-                } footer: {
-                    Text(model.settings.coverLayout.footer)
-                }
-
-                Section {
                     NavigationLink {
                         AccountsSettingsView()
                     } label: {
                         Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Accounts & Sync")
-                                Text(accountsSummary)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Accounts & Sync")
+                                    Spacer()
+                                    accountsSyncState
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                HStack(spacing: 8) {
+                                    ForEach(MetadataService.allCases) { service in
+                                        accountChip(service)
+                                    }
+                                }
                             }
                         } icon: {
                             Image(systemName: "person.crop.circle.badge.checkmark")
                                 .foregroundStyle(.tint)
                         }
+                        .accessibilityElement(children: .combine)
                     }
                     .accessibilityIdentifier("accounts-settings-link")
                 }
@@ -65,6 +62,17 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
 
+                    Toggle(isOn: $model.settings.stretchToScreen) {
+                        SettingLabel("Stretch 4:3 Games to 16:9", systemImage: "arrow.left.and.right")
+                    }
+
+                    Toggle(isOn: $model.settings.skipPatchVideos) {
+                        SettingLabel("Skip Translation Group Credit Videos", systemImage: "forward.end.fill")
+                    }
+                    .accessibilityIdentifier("skip-patch-videos-toggle")
+                }
+
+                Section("Controls") {
                     NavigationLink {
                         FloatingButtonSettingsView()
                     } label: {
@@ -77,18 +85,9 @@ struct SettingsView: View {
                     }
                     .accessibilityIdentifier("floating-button-settings-link")
 
-                    Toggle(isOn: $model.settings.stretchToScreen) {
-                        SettingLabel("Stretch 4:3 Games to 16:9", systemImage: "arrow.left.and.right")
-                    }
-
                     Toggle(isOn: $model.settings.threeFingerMenu) {
                         SettingLabel("Three-Finger Tap for Menu", systemImage: "hand.tap")
                     }
-
-                    Toggle(isOn: $model.settings.skipPatchVideos) {
-                        SettingLabel("Skip Translation Group Credit Videos", systemImage: "forward.end.fill")
-                    }
-                    .accessibilityIdentifier("skip-patch-videos-toggle")
                 }
 
                 Section {
@@ -106,18 +105,20 @@ struct SettingsView: View {
                     NavigationLink {
                         StorageView()
                     } label: {
-                        HStack {
-                            SettingLabel("Storage", systemImage: "internaldrive")
-                            Spacer()
-                            Text(storageTotal)
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 7) {
+                            HStack {
+                                SettingLabel("Storage", systemImage: "internaldrive")
+                                Spacer()
+                                Text(storageTotal)
+                                    .foregroundStyle(.secondary)
+                            }
+                            storageBar
+                            storageLegend
                         }
                     }
                     .accessibilityIdentifier("storage-settings-link")
                 } header: {
                     Text("General")
-                } footer: {
-                    Text("Wi-Fi upload and ZIP import aren’t available yet. Import with the plus button at the top right of the Library, or put game folders directly in Documents.")
                 }
 
                 Section {
@@ -175,6 +176,7 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(AppBackground())
             .navigationTitle("Settings")
+            .task { storageReport = await model.measureStorage() }
         }
         .sheet(isPresented: $showingWelcome) {
             WelcomeGuideView().environmentObject(model)
@@ -211,12 +213,118 @@ struct SettingsView: View {
             : String(localized: "Off")
     }
 
-    /// "Bangumi, VNDB" for connected services, or a prompt when none is.
-    private var accountsSummary: String {
-        let connected = MetadataService.allCases.filter { model.accounts[$0] != nil }
-        return connected.isEmpty
-            ? String(localized: "Bangumi and VNDB")
-            : connected.map(\.displayName).joined(separator: ", ")
+    /// Trailing sync state on the Accounts & Sync row; empty without accounts.
+    @ViewBuilder
+    private var accountsSyncState: some View {
+        if model.syncing {
+            HStack(spacing: 6) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Syncing…")
+            }
+        } else if model.accounts.isEmpty {
+            EmptyView()
+        } else if model.pendingSyncCount > 0 {
+            HStack(spacing: 4) {
+                Image(systemName: "clock.fill")
+                    .foregroundStyle(.orange)
+                Text("\(model.pendingSyncCount) Waiting")
+            }
+        } else {
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark.circle")
+                    .foregroundStyle(.green)
+                Text("Synced")
+            }
+        }
+    }
+
+    private func accountChip(_ service: MetadataService) -> some View {
+        let account = model.accounts[service]
+        let expired = account != nil && service == .bangumi && model.bangumiSignInExpired
+        return HStack(spacing: 7) {
+            ServiceAccountIcon(service: service, account: account, size: 28)
+                .frame(width: 28, height: 28)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: service.displayName)
+                    .font(.footnote.weight(.semibold))
+                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    if let account {
+                        Circle()
+                            .fill(expired ? Color.orange : Color.green)
+                            .frame(width: 6, height: 6)
+                        if expired {
+                            Text("Sign-In Expired")
+                                .foregroundStyle(.orange)
+                        } else {
+                            Text(verbatim: "@\(account.username)")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Circle()
+                            .strokeBorder(Color.secondary, lineWidth: 1)
+                            .frame(width: 6, height: 6)
+                        Text("Not Connected")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .font(.caption)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            }
+        }
+        .padding(.vertical, 7)
+        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    /// Storage categories in the order of the usage bar and legend.
+    private var storageSegments: [StorageSegment] {
+        [
+            StorageSegment(id: "Game Files", color: .accentColor, bytes: model.games.reduce(0) { $0 + $1.byteCount }),
+            StorageSegment(id: "Saves", color: .orange, bytes: storageReport?.totalSaves ?? 0),
+            StorageSegment(id: "Covers & Details", color: .teal, bytes: storageReport?.metadata ?? 0),
+            StorageSegment(id: "Logs", color: .gray, bytes: storageReport?.logs ?? 0)
+        ]
+    }
+
+    private var storageBar: some View {
+        let segments = storageSegments.filter { $0.bytes > 0 }
+        let total = segments.reduce(Int64(0)) { $0 + $1.bytes }
+        return GeometryReader { proxy in
+            HStack(spacing: 0) {
+                ForEach(segments) { segment in
+                    Rectangle()
+                        .fill(segment.color)
+                        .frame(width: max(3, proxy.size.width * CGFloat(segment.bytes) / CGFloat(max(total, 1))))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(height: 6)
+        .background(Color(uiColor: .tertiarySystemFill))
+        .clipShape(Capsule())
+        .accessibilityHidden(true)
+    }
+
+    private var storageLegend: some View {
+        HStack(spacing: 12) {
+            ForEach(storageSegments) { segment in
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(segment.color)
+                        .frame(width: 7, height: 7)
+                    Text(segment.title)
+                }
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+        .accessibilityHidden(true)
     }
 
     private var storageTotal: String {
@@ -227,6 +335,15 @@ struct SettingsView: View {
         info = text
         showInfo = true
     }
+}
+
+/// One category of the Storage row's usage bar.
+private struct StorageSegment: Identifiable {
+    /// The English name, which doubles as the localization key.
+    let id: String
+    let color: Color
+    let bytes: Int64
+    var title: LocalizedStringKey { LocalizedStringKey(id) }
 }
 
 /// Rendering, Emote and diagnostics options most players never need.

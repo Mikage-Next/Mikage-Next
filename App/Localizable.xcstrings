@@ -1010,22 +1010,6 @@
         }
       }
     },
-    "Bangumi and VNDB" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bangumi と VNDB"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bangumi 和 VNDB"
-          }
-        }
-      }
-    },
     "Bangumi and VNDB have no images for this game." : {
       "localizations" : {
         "ja" : {
@@ -1938,22 +1922,6 @@
         }
       }
     },
-    "Covers and synopses load without an account. Connect to sync your status, ratings and comments to your lists." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ログインしなくてもカバーとあらすじは取得できます。接続すると、ステータス・評価・ひとことがリストに同期されます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不登录也能获取封面和简介。连接账号后，游玩状态、评分和短评会同步到你的收藏。"
-          }
-        }
-      }
-    },
     "Create a Bangumi Account" : {
       "localizations" : {
         "ja" : {
@@ -2174,22 +2142,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除这些游戏的文件，存档、游玩记录和封面会保留。之后重新导入游戏，存档会自动恢复。"
-          }
-        }
-      }
-    },
-    "Details" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "作品情報"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "资料"
           }
         }
       }
@@ -2434,22 +2386,6 @@
         }
       }
     },
-    "Each card takes the shape of its cover, so nothing is cropped." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "各カードはカバー本来の比率で表示され、トリミングされません。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每张卡片按封面原本的比例显示，不做裁切。"
-          }
-        }
-      }
-    },
     "Each game’s savedata" : {
       "localizations" : {
         "ja" : {
@@ -2608,22 +2544,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已识别引擎，运行时接入后即可游玩"
-          }
-        }
-      }
-    },
-    "Every cover fills a 16:9 card and is cropped around its center." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべてのカバーを 16:9 のカードいっぱいに表示し、中央を基準にトリミングします。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所有封面铺满 16:9 卡片，从中间裁切。"
           }
         }
       }
@@ -5261,22 +5181,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "峰值"
-          }
-        }
-      }
-    },
-    "Portrait covers show whole over a blurred copy of themselves; wider covers are cropped around their subject." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "縦長のカバーは全体を表示し、背景に同じ画像のぼかしを敷きます。横長のカバーは被写体を中心にトリミングします。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "竖版封面完整显示，背后铺一层自身的模糊图；较宽的封面围绕画面主体裁切。"
           }
         }
       }
@@ -7947,22 +7851,6 @@
         }
       }
     },
-    "Tokens are stored in this device’s Keychain and only used to read and update your lists." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "トークンはこの端末のキーチェーンに保存され、リストの読み書きにのみ使われます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "令牌保存在本机钥匙串中，只用于读写你的收藏。"
-          }
-        }
-      }
-    },
     "Total" : {
       "localizations" : {
         "ja" : {
@@ -8327,22 +8215,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这是哪部作品？"
-          }
-        }
-      }
-    },
-    "Wi-Fi upload and ZIP import aren’t available yet. Import with the plus button at the top right of the Library, or put game folders directly in Documents." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wi-Fi アップロードと ZIP の読み込みにはまだ対応していません。ライブラリ右上のプラスボタンから読み込むか、ゲームフォルダを Documents に直接入れてください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "局域网上传与 ZIP 导入尚未接入。可以通过游戏库右上角的加号导入，或直接将游戏文件夹放入 Documents。"
           }
         }
       }
@@ -10785,6 +10657,166 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AI 重绘"
+          }
+        }
+      }
+    },
+    "Controls" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "操作"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "控制"
+          }
+        }
+      }
+    },
+    "%lld Waiting" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 件待機中"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个待同步"
+          }
+        }
+      }
+    },
+    "Sign-In Expired" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サインインの期限切れ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录已过期"
+          }
+        }
+      }
+    },
+    "Logs" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日志"
+          }
+        }
+      }
+    },
+    "Covers" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カバー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封面"
+          }
+        }
+      }
+    },
+    "Fill 16:9, crop the center" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "16:9 に合わせ、中央を切り抜き"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填满 16:9，裁切中心"
+          }
+        }
+      }
+    },
+    "Show portrait covers whole" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "縦長のカバーを全体表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整显示竖版封面"
+          }
+        }
+      }
+    },
+    "Each card takes its cover’s shape" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各カードはカバーの形になります"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每张卡片随封面形状"
+          }
+        }
+      }
+    },
+    "Covers and synopses load without an account. Tokens stay in this device’s Keychain and are only used to read and update your lists." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カバーとあらすじはアカウントなしで読み込まれます。トークンはこのデバイスのキーチェーンに保存され、リストの読み取りと更新にのみ使われます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封面和简介无需账号即可加载。令牌保存在此设备的钥匙串中，仅用于读取和更新你的列表。"
+          }
+        }
+      }
+    },
+    "Troubleshooting" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トラブルシューティング"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "故障排查"
           }
         }
       }

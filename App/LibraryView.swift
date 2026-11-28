@@ -295,6 +295,20 @@ struct LibraryView: View {
                     Label("List", systemImage: "list.bullet").tag(true)
                 }
             }
+            if !model.settings.listLayout {
+                Section("Covers") {
+                    Picker("Cover Layout", selection: $model.settings.coverLayout) {
+                        ForEach(CoverLayout.allCases, id: \.self) { layout in
+                            // Two Texts render as a title and subtitle in a menu.
+                            VStack {
+                                Text(layout.displayName)
+                                Text(layout.menuSubtitle)
+                            }
+                            .tag(layout)
+                        }
+                    }
+                }
+            }
             Section("Sort By") {
                 Picker("Sort By", selection: $model.settings.sort) {
                     ForEach(LibrarySort.allCases, id: \.self) {

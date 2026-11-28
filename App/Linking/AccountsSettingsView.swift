@@ -28,7 +28,7 @@ struct AccountsSettingsView: View {
             } header: {
                 Text("Accounts")
             } footer: {
-                Text("Covers and synopses load without an account. Connect to sync your status, ratings and comments to your lists.")
+                Text("Covers and synopses load without an account. Tokens stay in this device’s Keychain and are only used to read and update your lists.")
             }
 
             // Signing in covers the website already; a pasted token does not.
@@ -41,14 +41,7 @@ struct AccountsSettingsView: View {
             }
 
             Section {
-                NavigationLink("Bangumi Connection") {
-                    BangumiConnectionView()
-                }
-            } footer: {
-                Text("If Bangumi doesn’t load in your region, test the connection here.")
-            }
-
-            Section {
+                syncStatus
                 Toggle("Update Status While Playing", isOn: $model.settings.autoStatus)
                 Toggle("Sync Ratings and Comments", isOn: $model.settings.syncRatings)
                 Toggle("Record Start and Finish Dates", isOn: $model.settings.syncDates)
@@ -81,19 +74,19 @@ struct AccountsSettingsView: View {
                     }
                 }
             } header: {
-                Text("Details")
+                Text("Game Details")
             } footer: {
                 Text("A cover you set yourself is never replaced. Extra ratings, lengths and links come from 鲲 Galgame 论坛 (NextMoe), which also pairs Bangumi and VNDB entries by ID. No account needed; machine-translated Chinese titles are never used.")
             }
 
             Section {
-                syncStatus
-                Button("Sync Now") {
-                    Task { await model.syncPending() }
+                NavigationLink("Bangumi Connection") {
+                    BangumiConnectionView()
                 }
-                .disabled(model.syncing || model.accounts.isEmpty)
+            } header: {
+                Text("Troubleshooting")
             } footer: {
-                Text("Tokens are stored in this device’s Keychain and only used to read and update your lists.")
+                Text("If Bangumi doesn’t load in your region, test the connection here.")
             }
         }
         .scrollContentBackground(.hidden)
@@ -250,34 +243,46 @@ struct AccountsSettingsView: View {
     @ViewBuilder
     private var syncStatus: some View {
         let pending = model.pendingSyncCount
-        HStack(spacing: 10) {
-            if model.syncing {
-                ProgressView()
-                Text("Syncing…")
-            } else if model.accounts.isEmpty {
-                Image(systemName: "person.crop.circle.badge.questionmark")
-                    .foregroundStyle(.secondary)
-                Text("No account connected")
-            } else if pending > 0 {
-                Image(systemName: "clock.fill")
-                    .foregroundStyle(.orange)
-                Text("\(pending) games waiting to sync")
-            } else {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                Text("Everything Synced")
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                if model.syncing {
+                    ProgressView()
+                    Text("Syncing…")
+                } else if model.accounts.isEmpty {
+                    Image(systemName: "person.crop.circle.badge.questionmark")
+                        .foregroundStyle(.secondary)
+                    Text("No account connected")
+                } else if pending > 0 {
+                    Image(systemName: "clock.fill")
+                        .foregroundStyle(.orange)
+                    Text("\(pending) games waiting to sync")
+                } else {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Everything Synced")
+                        if let last = model.lastSyncedAt {
+                            Text(last, style: .relative)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                Spacer()
+                if !model.syncing {
+                    Button("Sync Now") {
+                        Task { await model.syncPending() }
+                    }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
+                    .disabled(model.accounts.isEmpty)
+                }
             }
-            Spacer()
-            if !model.syncing, pending == 0, let last = model.lastSyncedAt, !model.accounts.isEmpty {
-                Text(last, style: .relative)
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
+            if let error = model.lastSyncError, pending > 0 {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
             }
-        }
-        if let error = model.lastSyncError, pending > 0 {
-            Text(error)
-                .font(.footnote)
-                .foregroundStyle(.red)
         }
     }
 }

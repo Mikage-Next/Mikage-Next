@@ -250,15 +250,12 @@ enum CoverLayout: String, StoredSetting {
         }
     }
 
-    /// Explains the layout under its picker.
-    var footer: String {
+    /// A short description shown under the name in the Library menu.
+    var menuSubtitle: String {
         switch self {
-        case .original:
-            return String(localized: "Every cover fills a 16:9 card and is cropped around its center.")
-        case .adaptive:
-            return String(localized: "Portrait covers show whole over a blurred copy of themselves; wider covers are cropped around their subject.")
-        case .masonry:
-            return String(localized: "Each card takes the shape of its cover, so nothing is cropped.")
+        case .original: return String(localized: "Fill 16:9, crop the center")
+        case .adaptive: return String(localized: "Show portrait covers whole")
+        case .masonry: return String(localized: "Each card takes its cover’s shape")
         }
     }
 }
