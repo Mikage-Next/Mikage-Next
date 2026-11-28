@@ -306,8 +306,9 @@ final class KRKROverlayCoordinator: NSObject, UIGestureRecognizerDelegate {
         }
         // The game turns auto and skip off itself (a click, a choice,
         // unread text); keep the quick actions' state current.
-        if (model.quickActions.contains(.auto) || model.quickActions.contains(.skip)) && !model.menuVisible {
-            refreshControls()
+        if (model.quickActions.contains(.auto) || model.quickActions.contains(.skip)) && !model.menuVisible
+            && UIApplication.shared.applicationState == .active {
+            refreshModes()
         }
         guard model.performanceVisible else { return }
         model.frameHistory.append(performance.isIdle ? nil : performance.frameTimeMilliseconds)
@@ -362,6 +363,22 @@ final class KRKROverlayCoordinator: NSObject, UIGestureRecognizerDelegate {
 
     private func refreshControls() {
         let state = controls.state()
+        if model.controls != state {
+            model.controls = state
+        }
+        updateQuickActionStates()
+    }
+
+    /// The passive refresh: only the auto and skip bits change, through the
+    /// engine's cheap read when it has one. The other bits keep what the last
+    /// full read (menu, command) found.
+    private func refreshModes() {
+        guard let modeState = controls.modeState else {
+            refreshControls()
+            return
+        }
+        let modes: GameControlState = [.auto, .skip]
+        let state = model.controls.subtracting(modes).union(modeState().intersection(modes))
         if model.controls != state {
             model.controls = state
         }

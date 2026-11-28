@@ -61,6 +61,11 @@ struct GameControls {
     /// Asked again twice a second while the menu shows: some engines
     /// (Ren'Py) answer with the state as of their last step.
     var state: () -> GameControlState = { [] }
+    /// Just the auto and skip bits, for the once-a-second refresh of the Auto
+    /// and Skip quick actions. Engines whose full `state` is costly (KRKR
+    /// scans the game's links and buttons) give a cheap read here; nil
+    /// reads `state`.
+    var modeState: (() -> GameControlState)? = nil
     /// Holds or releases Ctrl: a skip through read and unread text alike.
     var setControlSkip: (Bool) -> Bool = { _ in false }
     /// A mouse at a point in the engine window, in points.

@@ -237,6 +237,7 @@ final class NativeKRKRSession: NSObject, KRKRSession {
             controls: GameControls(
                 run: { MikageKRKRRunCommand($0.rawValue) },
                 state: { GameControlState(rawValue: MikageKRKRGameControls()) },
+                modeState: { GameControlState(rawValue: MikageKRKRGameModes()) },
                 setControlSkip: { MikageKRKRSetControlSkip($0) },
                 sendPointer: { MikageKRKRSendPointer($0.rawValue, Float($1.x), Float($1.y)) }
             ),
