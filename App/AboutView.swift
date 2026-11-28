@@ -250,6 +250,8 @@ enum AboutCredits {
         item("sdl2-compat", "sdl2-compat", "zlib", "https://github.com/libsdl-org/sdl2-compat/blob/main/LICENSE.txt"),
         item("MetalANGLE", "MetalANGLE", "BSD-3", "https://github.com/kakashidinho/metalangle/blob/master/LICENSE"),
         item("FreeType", "FreeType", "FTL", "https://freetype.org/license.html"),
+        item("libarchive", "libarchive", "BSD-2-Clause", "https://github.com/libarchive/libarchive/blob/master/COPYING"),
+        item("XZ Utils", "liblzma", "0BSD", "https://github.com/tukaani-project/xz/blob/master/COPYING.0BSD"),
     ]
 
     static var licenseCount: Int { 1 + engines.count + libraries.count }

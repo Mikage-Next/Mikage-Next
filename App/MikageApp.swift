@@ -11,6 +11,9 @@ struct MikageApp: App {
                 .environmentObject(model)
                 .tint(.indigo)
                 .preferredColorScheme(model.settings.appearance.colorScheme)
+                .onOpenURL { url in
+                    model.handleOpenedURL(url)
+                }
         }
     }
 }
@@ -51,6 +54,24 @@ final class AppModel: ObservableObject {
     /// The ONScripter save slot the next launch starts from, if any.
     var pendingLoadSlot: Int?
     @Published var pendingImport: PendingGameImport?
+
+    // MARK: Archive import
+
+    /// The Import Archive sheet.
+    @Published var archiveCheck: ArchiveCheck?
+    /// The archive being extracted, shown as a card in the library.
+    @Published var extraction: ArchiveExtraction?
+    @Published var showExtractionSheet = false
+    /// The archive whose file list is being read.
+    @Published var archiveReading: String?
+    @Published var archivePasswordRequest: ArchivePasswordRequest?
+    @Published var archiveAlert: ArchiveAlert?
+    @Published var archiveEngineRequest: ArchiveEngineRequest?
+    /// Asks "Stop Extracting?".
+    @Published var confirmingStopExtraction = false
+    @Published var showArchivePicker = false
+    @Published var showFolderPicker = false
+    let archiveState = ArchiveImportState()
 
     // MARK: Bangumi and VNDB
 
@@ -175,6 +196,8 @@ final class AppModel: ObservableObject {
 
         do {
             try self.repository.ensureStructure()
+            // Nothing is extracting yet, so any staging folder is left over.
+            self.repository.removeStagingDirectories()
             let records = try self.repository.load()
             games = records.filter { $0.availability != .missing }
             missingGames = records.filter { $0.availability == .missing }
@@ -366,7 +389,7 @@ final class AppModel: ObservableObject {
             let repository = self.repository
             let builtInGamesRoot = self.builtInGamesRoot
             let known = Set((games + missingGames).map(\.id))
-            let (snapshot, builtIn) = try await Task.detached(priority: .userInitiated) {
+            let (snapshot, builtIn, archives) = try await Task.detached(priority: .userInitiated) {
                 var copied: [String] = []
                 if let builtInGamesRoot {
                     do {
@@ -378,11 +401,16 @@ final class AppModel: ObservableObject {
                         AppDiagnostics.shared.event("library", "builtin.failed", ["error": error.localizedDescription])
                     }
                 }
-                return (try repository.scan(), Set(copied.map { ($0 as NSString).lastPathComponent }))
+                let snapshot = try repository.scan()
+                let archives = offerNewGames ? ((try? repository.archivesInDocuments()) ?? []) : []
+                return (snapshot, Set(copied.map { ($0 as NSString).lastPathComponent }), archives)
             }.value
             apply(snapshot)
             if offerNewGames {
-                announceNewGames(snapshot.active.filter { !known.contains($0.id) && !builtIn.contains($0.folderName) })
+                announceNewGames(
+                    snapshot.active.filter { !known.contains($0.id) && !builtIn.contains($0.folderName) },
+                    archives: archives.filter { !isArchiveBusy($0) }
+                )
             }
             AppDiagnostics.shared.event("library", "scan.end", ["active": String(snapshot.active.count), "missing": String(snapshot.missing.count)])
         } catch {

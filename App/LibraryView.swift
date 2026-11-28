@@ -42,6 +42,7 @@ struct RootView: View {
             .sheet(item: $model.importReview) { review in
                 ImportReviewView(review: review).environmentObject(model)
             }
+            .modifier(ArchiveImportPresentations())
             .sheet(isPresented: $showingWelcome) {
                 WelcomeGuideView().environmentObject(model)
             }
@@ -111,10 +112,23 @@ struct RootView: View {
 struct LibraryView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @State private var importPicker = false
     @State private var showMissingGames = false
 
     private var regular: Bool { sizeClass == .regular }
+
+    /// ZIP, RAR and 7z. RAR and 7z have no system type before iOS 26, so
+    /// they are declared by identifier.
+    private static var archiveTypes: [UTType] {
+        [.zip,
+         UTType("com.rarlab.rar-archive") ?? UTType(importedAs: "com.rarlab.rar-archive"),
+         UTType("org.7-zip.7-zip-archive") ?? UTType(importedAs: "org.7-zip.7-zip-archive")]
+    }
+
+    private var progressRowText: LocalizedStringKey {
+        if model.importing { return "Copying game files…" }
+        if model.archiveReading != nil { return "Reading archive…" }
+        return "Scanning game folders…"
+    }
 
     /// Everything that is not waiting on an engine runtime. Games with a broken
     /// launch target stay here, disabled, with the reason under the title.
@@ -161,15 +175,15 @@ struct LibraryView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 12) {
-                            if model.importing || model.scanning {
+                            if model.importing || model.scanning || model.archiveReading != nil {
                                 HStack {
                                     ProgressView()
-                                    Text(model.importing ? LocalizedStringKey("Copying game files…") : LocalizedStringKey("Scanning game folders…"))
+                                    Text(progressRowText)
                                 }
                                 .font(.subheadline)
                             }
 
-                            if model.displayedGames.isEmpty {
+                            if model.displayedGames.isEmpty && model.extraction == nil {
                                 emptyLibrary
                             } else {
                                 sections
@@ -199,10 +213,22 @@ struct LibraryView: View {
             .background(AppBackground())
             .toolbar(.hidden, for: .navigationBar)
         }
-        .fileImporter(isPresented: $importPicker, allowedContentTypes: [.folder]) { result in
+        .fileImporter(isPresented: $model.showFolderPicker, allowedContentTypes: [.folder]) { result in
             switch result {
             case .success(let url):
                 Task { await model.beginImport(url) }
+            case .failure(let error):
+                model.alert = error.localizedDescription
+            }
+        }
+        .fileImporter(
+            isPresented: $model.showArchivePicker,
+            allowedContentTypes: Self.archiveTypes,
+            allowsMultipleSelection: true
+        ) { result in
+            switch result {
+            case .success(let urls):
+                model.beginArchiveImport(urls, fromFiles: true)
             case .failure(let error):
                 model.alert = error.localizedDescription
             }
@@ -327,13 +353,22 @@ struct LibraryView: View {
 
     private var importMenu: some View {
         Menu {
-            Button { importPicker = true } label: {
+            Button { model.showFolderPicker = true } label: {
                 Label("Import Folder", systemImage: "folder.badge.plus")
             }
-            Button {
-                model.alert = String(localized: "ZIP extraction and Wi-Fi upload aren’t available yet. You can also put game folders directly in Documents.")
-            } label: {
-                Label("ZIP & Wi-Fi Import", systemImage: "wifi")
+            Button { model.showArchivePicker = true } label: {
+                Label {
+                    // Two Texts render as a title and subtitle in a menu.
+                    VStack {
+                        Text("Import Archive")
+                        Text("ZIP, RAR or 7z")
+                    }
+                } icon: {
+                    Image(systemName: "doc.zipper")
+                }
+            }
+            Section {
+                Text("You can also drop game folders and archives into Mikage in the Files app.")
             }
         } label: {
             Label("Add Game", systemImage: "plus")
@@ -354,18 +389,23 @@ struct LibraryView: View {
         let playable = playableGames.filter { !recentIDs.contains($0.id) }
         let comingSoon = comingSoonGames
 
-        if !recent.isEmpty {
+        if !recent.isEmpty || model.extraction != nil {
             HStack(alignment: .firstTextBaseline) {
                 Text("Recently Added")
                     .font(.title2.bold())
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
-                Text("\(recent.count) games")
+                Text("\(recent.count + (model.extraction == nil ? 0 : 1)) games")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            GameGrid(games: recent)
-                .padding(.bottom, 12)
+            if let extraction = model.extraction {
+                ExtractionCardGrid(extraction: extraction)
+            }
+            if !recent.isEmpty {
+                GameGrid(games: recent)
+                    .padding(.bottom, 12)
+            }
         }
 
         if !playable.isEmpty {
@@ -402,9 +442,9 @@ struct LibraryView: View {
             ContentUnavailableView {
                 Label("Your Stories Start Here", systemImage: "books.vertical")
             } description: {
-                Text("Put game folders directly in Documents. They’re scanned automatically when you return to the app.")
+                Text("Put game folders or ZIP, RAR and 7z archives directly in Documents. They’re scanned automatically when you return to the app.")
             } actions: {
-                Button("Import Game") { importPicker = true }
+                Button("Import Game") { model.showFolderPicker = true }
                     .buttonStyle(.borderedProminent)
                     .disabled(model.importing)
             }
@@ -413,10 +453,10 @@ struct LibraryView: View {
             VStack(spacing: 15) {
                 Label("Your Stories Start Here", systemImage: "books.vertical")
                     .font(.title3.weight(.semibold))
-                Text("Put game folders directly in Documents. They’re scanned automatically when you return to the app.")
+                Text("Put game folders or ZIP, RAR and 7z archives directly in Documents. They’re scanned automatically when you return to the app.")
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                Button("Import Game") { importPicker = true }
+                Button("Import Game") { model.showFolderPicker = true }
                     .buttonStyle(.borderedProminent)
                     .disabled(model.importing)
             }

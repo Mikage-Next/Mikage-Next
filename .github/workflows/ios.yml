@@ -687,6 +687,27 @@ jobs:
         with:
           path: build/SoftPALRuntime.xcframework
           key: ${{ steps.cache-softpal-runtime.outputs.cache-primary-key }}
+      # libarchive (with liblzma) reads ZIP, RAR and 7z archives in the app. It
+      # only depends on the two pinned release tarballs, this script and the
+      # toolchain.
+      - name: Restore LibArchive framework
+        id: cache-libarchive
+        uses: actions/cache/restore@v4
+        with:
+          path: build/LibArchive.xcframework
+          key: libarchive-framework-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.XCODE_CACHE_KEY }}-${{ hashFiles('scripts/build-libarchive-ios.sh') }}
+      - name: Build LibArchive framework
+        if: steps.cache-libarchive.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p build
+          set -o pipefail
+          bash scripts/build-libarchive-ios.sh 2>&1 | tee build/libarchive-build.log
+      - name: Save LibArchive framework
+        if: steps.cache-libarchive.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/LibArchive.xcframework
+          key: ${{ steps.cache-libarchive.outputs.cache-primary-key }}
       - name: Generate Xcode project
         run: |
           python3 scripts/check-krkr-work-profile-swift.py

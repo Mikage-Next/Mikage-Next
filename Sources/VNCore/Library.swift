@@ -229,11 +229,11 @@ public struct LibraryRepository: Sendable {
     /// player's own, and removed once it has.
     public static let dropTipNames = ["DROP_GAMES_HERE", "把游戏放在这里"]
     static let dropTipText = """
-    Put each game's folder here, directly in this folder, then return to Mikage.
+    Put each game's folder, or its ZIP, RAR or 7z archive, here, directly in this folder, then return to Mikage.
     Mikage finds the engine (KiriKiri, ONScripter, Artemis, Ren’Py, Siglus, FVP, BGI or YU-RIS) by itself.
     This file goes away once a game is found.
 
-    把每个游戏的文件夹直接放在这里，然后回到 Mikage。
+    把每个游戏的文件夹或 ZIP、RAR、7z 压缩包直接放在这里，然后回到 Mikage。
     Mikage 会自动识别引擎（KiriKiri、ONScripter、Artemis、Ren’Py、Siglus、FVP、BGI 或 YU-RIS）。
     找到游戏后，这个文件会自动删除。
 
@@ -464,24 +464,70 @@ public struct LibraryRepository: Sendable {
 
     public func importFolder(_ source: URL, engine: EngineID) throws {
         try ensureStructure()
-        let folderName = source.lastPathComponent.precomposedStringWithCanonicalMapping
+        let folderName = try checkedFolderName(source.lastPathComponent)
+        try validateImportTree(source)
+        let staging = gamesRoot.appendingPathComponent(".incoming-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: staging) }
+        try FileManager.default.copyItem(at: source, to: staging)
+        try place(staging, as: folderName, engine: engine)
+    }
+
+    /// A new, empty folder in Documents for an archive to be extracted into.
+    /// It is hidden, so scans ignore it; `adoptStagedFolder` turns it into a
+    /// game, and `removeStagingDirectories` clears the ones left behind.
+    public func makeStagingDirectory() throws -> URL {
+        try ensureStructure()
+        let staging = gamesRoot.appendingPathComponent(".incoming-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
+        return staging
+    }
+
+    /// Removes every staging folder in Documents. Call it when nothing is
+    /// being extracted, such as at launch: it would delete a running job's.
+    public func removeStagingDirectories() {
+        let fm = FileManager.default
+        let children = (try? fm.contentsOfDirectory(at: gamesRoot, includingPropertiesForKeys: nil, options: [])) ?? []
+        for child in children where child.lastPathComponent.hasPrefix(".incoming-") {
+            try? fm.removeItem(at: child)
+        }
+    }
+
+    /// Moves a finished staging folder into the library as `folderName`, with
+    /// the same checks as `importFolder`. On failure the staging folder is
+    /// left for the caller to remove.
+    public func adoptStagedFolder(_ staging: URL, folderName: String, engine: EngineID) throws {
+        try ensureStructure()
+        let name = try checkedFolderName(folderName)
+        try validateImportTree(staging)
+        try place(staging, as: name, engine: engine)
+    }
+
+    /// `name`, or `name 2`, `name 3`... when a folder of that name is already
+    /// in Documents.
+    public func uniqueFolderName(_ name: String) -> String {
+        uniqueName(for: name, in: gamesRoot)
+    }
+
+    /// The name a game folder is stored under, or an error when it can't be
+    /// used: not a plain folder name, or already taken in Documents.
+    private func checkedFolderName(_ raw: String) throws -> String {
+        let folderName = raw.precomposedStringWithCanonicalMapping
         guard !folderName.isEmpty, folderName != ".", folderName != "..",
               !folderName.contains("/"), !folderName.contains("\\"),
               !folderName.hasPrefix(".") else {
             throw LibraryError.invalidFolderName
         }
-        try validateImportTree(source)
-        let root = gamesRoot
-        if try containsFolder(named: folderName, in: root) {
+        if try containsFolder(named: folderName, in: gamesRoot) {
             throw LibraryError.duplicateName(folderName)
         }
+        return folderName
+    }
 
-        let staging = root.appendingPathComponent(".incoming-\(UUID().uuidString)", isDirectory: true)
-        let destination = root.appendingPathComponent(folderName, isDirectory: true)
-        defer { try? FileManager.default.removeItem(at: staging) }
-        try FileManager.default.copyItem(at: source, to: staging)
-        try FileManager.default.moveItem(at: staging, to: destination)
-        // The engine chosen at import, which the scan keeps for this folder.
+    /// Moves `staged` to Documents as `folderName` and records the game with
+    /// the engine chosen at import, which the scan keeps for this folder.
+    private func place(_ staged: URL, as folderName: String, engine: EngineID) throws {
+        let destination = gamesRoot.appendingPathComponent(folderName, isDirectory: true)
+        try FileManager.default.moveItem(at: staged, to: destination)
         try mutate { records in
             guard !records.contains(where: { key(folderName: $0.folderName) == key(folderName: folderName) }) else { return }
             records.append(GameRecord(title: folderName, engine: engine, folderName: folderName, availability: .missing))
@@ -1073,7 +1119,7 @@ public enum GameScanner {
                                  discardedUserChoice: chosenStartup)
     }
 
-    private static let xp3Signature = Data([0x58, 0x50, 0x33, 0x0D, 0x0A, 0x20, 0x0A, 0x1A, 0x8B, 0x67, 0x01])
+    static let xp3Signature = Data([0x58, 0x50, 0x33, 0x0D, 0x0A, 0x20, 0x0A, 0x1A, 0x8B, 0x67, 0x01])
     private static let preferredXP3Names = ["启动游戏.xp3", "startup.xp3", "start.xp3", "boot.xp3"]
     /// Script files ONScripter Yuri opens, plain or obfuscated.
     private static let onscripterScriptNames: Set<String> = ["0.txt", "00.txt", "nscript.dat", "nscr_sec.dat", "onscript.nt2", "onscript.nt3"]

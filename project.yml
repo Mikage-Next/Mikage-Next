@@ -60,6 +60,12 @@ targets:
       # (scripts/build-ffmpeg-ios.sh).
       - framework: build/FFmpeg.xcframework
         embed: true
+      # libarchive and liblzma, static, for ZIP/RAR/7z import
+      # (scripts/build-libarchive-ios.sh). zlib and bzip2 come from the SDK.
+      - framework: build/LibArchive.xcframework
+        embed: false
+      - sdk: libz.tbd
+      - sdk: libbz2.tbd
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: moe.cheney233.mikage

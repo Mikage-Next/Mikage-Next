@@ -50,6 +50,22 @@
         }
       }
     },
+    "%@ free" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空き %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用 %@"
+          }
+        }
+      }
+    },
     "%@ in total" : {
       "localizations" : {
         "ja" : {
@@ -95,6 +111,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%3$@ 共 %2$@，还剩 %1$@"
+          }
+        }
+      }
+    },
+    "%@ of %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "%@ of %@ · %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@ · %3$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@ · %3$@"
           }
         }
       }
@@ -182,6 +230,54 @@
         }
       }
     },
+    "%@ · %lld files · from Files" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld ファイル · ファイルアプリから"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld 个文件 · 来自“文件”"
+          }
+        }
+      }
+    },
+    "%@ · %lld files · in Mikage’s folder" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld ファイル · Mikage のフォルダ内"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld 个文件 · 在 Mikage 的文件夹中"
+          }
+        }
+      }
+    },
+    "%@ · %lld to extract" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 展開待ち %2$lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld 个待解压"
+          }
+        }
+      }
+    },
     "%@ · from the Files app" : {
       "localizations" : {
         "ja" : {
@@ -258,6 +354,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@，%2$@"
+          }
+        }
+      }
+    },
+    "%@/ · %lld files" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@/ · %2$lld ファイル"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@/ · %2$lld 个文件"
+          }
+        }
+      }
+    },
+    "%lld files" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld ファイル"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个文件"
           }
         }
       }
@@ -426,6 +554,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 条缺失游戏记录"
+          }
+        }
+      }
+    },
+    "%lld more" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ほか %lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另外 %lld 项"
+          }
+        }
+      }
+    },
+    "%lld names have unreadable characters" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 件の名前に読めない文字があります"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个名称含有无法读取的字符"
           }
         }
       }
@@ -626,6 +786,22 @@
         }
       }
     },
+    "about %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約 %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "约 %@"
+          }
+        }
+      }
+    },
     "About Mikage" : {
       "localizations" : {
         "ja" : {
@@ -770,6 +946,22 @@
         }
       }
     },
+    "All %lld names read correctly" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 件の名前すべてが正しく読めます"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部 %lld 个名称都能正确读取"
+          }
+        }
+      }
+    },
     "All Games" : {
       "localizations" : {
         "ja" : {
@@ -830,6 +1022,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外观"
+          }
+        }
+      }
+    },
+    "Archives made on a Mac or with 7-Zip" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac や 7-Zip で作ったアーカイブ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Mac 或用 7-Zip 制作的压缩包"
           }
         }
       }
@@ -1202,6 +1410,86 @@
         }
       }
     },
+    "Can’t Open This Archive" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアーカイブを開けません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法打开此压缩包"
+          }
+        }
+      }
+    },
+    "Chinese Windows, most CHS patches" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中国語版 Windows、ほとんどの中国語パッチ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中文版 Windows，多数汉化补丁"
+          }
+        }
+      }
+    },
+    "Choose a ZIP, RAR or 7z archive." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ZIP、RAR、7z のアーカイブを選んでください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择 ZIP、RAR 或 7z 压缩包。"
+          }
+        }
+      }
+    },
+    "Choose Again" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選び直す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新选择"
+          }
+        }
+      }
+    },
+    "Choose…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择…"
+          }
+        }
+      }
+    },
     "CMVS failed to start." : {
       "localizations" : {
         "ja" : {
@@ -1570,6 +1858,22 @@
         }
       }
     },
+    "Contents" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内容"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内容"
+          }
+        }
+      }
+    },
     "Continue from Latest Save" : {
       "localizations" : {
         "ja" : {
@@ -1614,6 +1918,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "继续上次：%@"
+          }
+        }
+      }
+    },
+    "Copy a game’s folder or archive into Mikage in the Files app. It shows up the next time you open the app." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルアプリで、ゲームのフォルダまたはアーカイブを Mikage にコピーしてください。次にアプリを開いたときに表示されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“文件”App 中把游戏的文件夹或压缩包拷贝到 Mikage，下次打开 App 时就会出现。"
           }
         }
       }
@@ -2030,6 +2350,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除%@？"
+          }
+        }
+      }
+    },
+    "Delete Archive After Import" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "読み込み後にアーカイブを削除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入后删除压缩包"
           }
         }
       }
@@ -2660,6 +2996,166 @@
         }
       }
     },
+    "Extract" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压"
+          }
+        }
+      }
+    },
+    "Extracting %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ を展開中"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在解压 %@"
+          }
+        }
+      }
+    },
+    "Extracting %@, %lld%%" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ を展開中、%2$lld%%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在解压 %1$@，%2$lld%%"
+          }
+        }
+      }
+    },
+    "Extracting goes on in the background. You can leave Mikage." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開はバックグラウンドで続きます。Mikage を離れても大丈夫です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压会在后台继续，你可以离开 Mikage。"
+          }
+        }
+      }
+    },
+    "Extracting needs %@, and %@ is free. Remove games or saves in Settings › Storage, then try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開には %1$@ 必要ですが、空きは %2$@ です。「設定 › ストレージ」でゲームやセーブを削除してから、もう一度お試しください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压需要 %1$@，但仅剩 %2$@ 可用。请在“设置 › 储存空间”中删除游戏或存档后再试。"
+          }
+        }
+      }
+    },
+    "Extracting was stopped." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開を中止しました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压已停止。"
+          }
+        }
+      }
+    },
+    "Extracting · %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開中 · %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压中 · %@"
+          }
+        }
+      }
+    },
+    "Extracting “%@” needs %@, and %@ is free. Remove games or saves in Settings › Storage, then try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」の展開には %2$@ 必要ですが、空きは %3$@ です。「設定 › ストレージ」でゲームやセーブを削除してから、もう一度お試しください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压“%1$@”需要 %2$@，但仅剩 %3$@ 可用。请在“设置 › 储存空间”中删除游戏或存档后再试。"
+          }
+        }
+      }
+    },
+    "Extracting…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開中…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在解压…"
+          }
+        }
+      }
+    },
+    "Extraction Stopped" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開を中断しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压已中断"
+          }
+        }
+      }
+    },
     "Fetching covers and details from Bangumi and VNDB…" : {
       "localizations" : {
         "ja" : {
@@ -2672,6 +3168,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在从 Bangumi 和 VNDB 获取封面与资料…"
+          }
+        }
+      }
+    },
+    "File Names" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイル名"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名"
           }
         }
       }
@@ -2854,6 +3366,38 @@
         }
       }
     },
+    "Found from the file list, before anything is extracted. Change the folder name if one with the same name is already in your library." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイル一覧から検出しました（まだ何も展開していません）。同じ名前のフォルダがライブラリにある場合は、フォルダ名を変更してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "根据文件列表识别，尚未解压任何内容。如果资料库中已有同名文件夹，请修改文件夹名称。"
+          }
+        }
+      }
+    },
+    "Found: %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検出：%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "识别为：%@"
+          }
+        }
+      }
+    },
     "Frame time" : {
       "localizations" : {
         "ja" : {
@@ -2898,6 +3442,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "释放 %@"
+          }
+        }
+      }
+    },
+    "From the Files app · %lld to extract" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルアプリから · 展開待ち %lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自“文件”App · %lld 个待解压"
           }
         }
       }
@@ -2998,6 +3558,22 @@
         }
       }
     },
+    "Game" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゲーム"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "游戏"
+          }
+        }
+      }
+    },
     "Game Cover" : {
       "localizations" : {
         "ja" : {
@@ -3074,6 +3650,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "游戏文件和存档都会被永久删除，游玩记录仍会保留在 Bangumi 和 VNDB。"
+          }
+        }
+      }
+    },
+    "Game Folder in Archive" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブ内のゲームフォルダ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压缩包内的游戏文件夹"
           }
         }
       }
@@ -3398,6 +3990,22 @@
         }
       }
     },
+    "Import Archive" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブを読み込む"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入压缩包"
+          }
+        }
+      }
+    },
     "Import Folder" : {
       "localizations" : {
         "ja" : {
@@ -3544,6 +4152,38 @@
         }
       }
     },
+    "Japanese (Shift-JIS)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日本語 (Shift-JIS)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日文 (Shift-JIS)"
+          }
+        }
+      }
+    },
+    "Japanese Windows" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日本語版 Windows"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日文版 Windows"
+          }
+        }
+      }
+    },
     "Jump Back" : {
       "localizations" : {
         "ja" : {
@@ -3605,6 +4245,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刚刚"
+          }
+        }
+      }
+    },
+    "Keep Extracting" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開を続ける"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续解压"
+          }
+        }
+      }
+    },
+    "Keep Mikage open. The screen stays on until it’s done. If you leave, extracting pauses and goes on when you come back." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mikage を開いたままにしてください。完了するまで画面は消えません。離れると展開は一時停止し、戻ると再開します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请保持 Mikage 打开。完成前屏幕会保持常亮。如果离开，解压会暂停，回来后继续。"
           }
         }
       }
@@ -4267,6 +4939,22 @@
         }
       }
     },
+    "Missing Archive Part" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブのパートがありません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少压缩包分卷"
+          }
+        }
+      }
+    },
     "Missing Games" : {
       "localizations" : {
         "ja" : {
@@ -4375,6 +5063,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "名称"
+          }
+        }
+      }
+    },
+    "Names read as text, but may be the wrong language. Check they look right." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名前は文字として読めますが、言語が違うかもしれません。正しく見えるか確認してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名称能读成文字，但语言可能不对。请检查是否正常。"
+          }
+        }
+      }
+    },
+    "Needs %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "必要：%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要 %@"
           }
         }
       }
@@ -4733,6 +5453,22 @@
         }
       }
     },
+    "Not Enough Space" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空き容量が足りません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空间不足"
+          }
+        }
+      }
+    },
     "Not played yet" : {
       "localizations" : {
         "ja" : {
@@ -4877,6 +5613,22 @@
         }
       }
     },
+    "On by default. Shown only for archives in Mikage’s own folder; an archive picked from elsewhere is read in place and always left as it is." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "初期設定ではオンです。Mikage 自身のフォルダにあるアーカイブにだけ表示されます。ほかの場所から選んだアーカイブはその場で読み込み、そのまま残します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认开启。仅对位于 Mikage 自己文件夹中的压缩包显示；从其他位置选择的压缩包会就地读取，并始终保持原样。"
+          }
+        }
+      }
+    },
     "On Hold" : {
       "localizations" : {
         "ja" : {
@@ -4923,6 +5675,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开启 · %lld 个操作"
+          }
+        }
+      }
+    },
+    "Only for ZIP: RAR and 7z store names in Unicode. ZIPs made on Japanese or Chinese Windows often keep names in the local code page. Automatic picks the one where every name reads as real text; change it if the names below still look wrong." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ZIP 専用です。RAR と 7z は名前を Unicode で保存します。日本語版・中国語版 Windows で作った ZIP は、名前をその地域のコードページで保存していることがよくあります。「自動」は、すべての名前が正しい文字として読める方式を選びます。下の名前がまだおかしい場合は変更してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅适用于 ZIP：RAR 和 7z 以 Unicode 存储名称。在日文或中文版 Windows 上制作的 ZIP 常以本地代码页保存名称。“自动”会选择所有名称都能读成正常文字的编码；如果下面的名称仍然不对，请手动更改。"
+          }
+        }
+      }
+    },
+    "Only the files inside this folder are extracted." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このフォルダ内のファイルだけを展開します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只会解压此文件夹内的文件。"
           }
         }
       }
@@ -5169,6 +5953,38 @@
         }
       }
     },
+    "Password Required" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードが必要です"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要密码"
+          }
+        }
+      }
+    },
+    "Password-protected RAR and 7z archives can’t be opened yet. Extract it on a computer and copy the folder in." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワード付きの RAR と 7z はまだ開けません。パソコンで展開して、フォルダをコピーしてください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法打开带密码的 RAR 和 7z 压缩包。请在电脑上解压，再把文件夹拷进来。"
+          }
+        }
+      }
+    },
     "Peak" : {
       "localizations" : {
         "ja" : {
@@ -5197,6 +6013,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "呈现等待"
+          }
+        }
+      }
+    },
+    "Preview" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレビュー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览"
+          }
+        }
+      }
+    },
+    "Put game folders or ZIP, RAR and 7z archives directly in Documents. They’re scanned automatically when you return to the app." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゲームのフォルダや ZIP・RAR・7z のアーカイブを Documents に直接入れてください。アプリに戻ると自動でスキャンされます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把游戏文件夹或 ZIP、RAR、7z 压缩包直接放入 Documents，返回 App 后会自动扫描。"
           }
         }
       }
@@ -5361,6 +6209,22 @@
         }
       }
     },
+    "Reading archive…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブを読み込み中…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取压缩包…"
+          }
+        }
+      }
+    },
     "Remove %@" : {
       "localizations" : {
         "ja" : {
@@ -5457,6 +6321,22 @@
         }
       }
     },
+    "Shows names with Japanese or Chinese characters; plain English names read the same in every setting." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日本語や中国語の文字を含む名前を表示します。英数字だけの名前はどの設定でも同じに読めます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只显示含日文或中文字符的名称；纯英文名称在任何设置下都一样。"
+          }
+        }
+      }
+    },
     "Shows only the frame rate" : {
       "localizations" : {
         "ja" : {
@@ -5533,6 +6413,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "SiglusEngine 已停止：%@"
+          }
+        }
+      }
+    },
+    "Simplified Chinese (GBK)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "簡体字中国語 (GBK)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简体中文 (GBK)"
           }
         }
       }
@@ -5633,6 +6529,22 @@
         }
       }
     },
+    "Space" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "容量"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空间"
+          }
+        }
+      }
+    },
     "Stats" : {
       "localizations" : {
         "ja" : {
@@ -5645,6 +6557,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "性能统计"
+          }
+        }
+      }
+    },
+    "Stop" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中止"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止"
+          }
+        }
+      }
+    },
+    "Stop Extracting" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開を中止"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止解压"
+          }
+        }
+      }
+    },
+    "Stop Extracting?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開を中止しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止解压？"
           }
         }
       }
@@ -5677,6 +6637,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在关闭、简洁和完整之间切换"
+          }
+        }
+      }
+    },
+    "Taiwan and Hong Kong Windows" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "台湾・香港の Windows"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "台湾与香港的 Windows"
           }
         }
       }
@@ -5729,6 +6705,54 @@
         }
       }
     },
+    "That password isn’t right. Try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードが違います。もう一度お試しください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码不正确，请重试。"
+          }
+        }
+      }
+    },
+    "The archive is damaged at %@. Nothing was added. Download it again and retry." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブは %@ で壊れています。何も追加されませんでした。もう一度ダウンロードしてやり直してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压缩包在 %@ 处已损坏，未添加任何内容。请重新下载后再试。"
+          }
+        }
+      }
+    },
+    "The archive is damaged. Nothing was added. Download it again and retry." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブが壊れています。何も追加されませんでした。もう一度ダウンロードしてやり直してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压缩包已损坏，未添加任何内容。请重新下载后再试。"
+          }
+        }
+      }
+    },
     "The button fades to this opacity after a few seconds without a touch. Drag it anywhere; it snaps to the nearest edge, or into the bar beside the game." : {
       "localizations" : {
         "ja" : {
@@ -5741,6 +6765,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "几秒钟没有触碰后，按钮会淡出到此透明度。可将它拖到任意位置，松手后会吸附到最近的边缘，或游戏旁的黑边中。"
+          }
+        }
+      }
+    },
+    "This archive is protected by a password." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアーカイブはパスワードで保護されています。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此压缩包受密码保护。"
+          }
+        }
+      }
+    },
+    "This file can’t be read as a ZIP, RAR or 7z archive." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルは ZIP、RAR、7z として読み込めません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将此文件作为 ZIP、RAR 或 7z 压缩包读取。"
           }
         }
       }
@@ -5777,6 +6833,38 @@
         }
       }
     },
+    "Traditional Chinese (Big5)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繁体字中国語 (Big5)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繁体中文 (Big5)"
+          }
+        }
+      }
+    },
+    "Try Again" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一度試す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
+          }
+        }
+      }
+    },
     "Tuck Away Performance Stats" : {
       "localizations" : {
         "ja" : {
@@ -5789,6 +6877,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "收起性能统计"
+          }
+        }
+      }
+    },
+    "Unicode (UTF-8)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unicode (UTF-8)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unicode (UTF-8)"
           }
         }
       }
@@ -5809,6 +6913,22 @@
         }
       }
     },
+    "Unreadable" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "読めません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取"
+          }
+        }
+      }
+    },
     "Upload" : {
       "localizations" : {
         "ja" : {
@@ -5821,6 +6941,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上传"
+          }
+        }
+      }
+    },
+    "Use “%@”" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」を使う"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改用“%@”"
           }
         }
       }
@@ -5841,6 +6977,22 @@
         }
       }
     },
+    "What was extracted so far is removed." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ここまでに展開した内容は削除されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已解压的内容将被删除。"
+          }
+        }
+      }
+    },
     "When you start Skip with its quick action, a tap on the game stops it. Skip that the game turns on by itself is left to the game." : {
       "localizations" : {
         "ja" : {
@@ -5853,6 +7005,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用快捷操作开启快进后，轻点游戏画面即可停止。游戏自行开启的快进仍由游戏处理。"
+          }
+        }
+      }
+    },
+    "Whole Archive" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブ全体"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整个压缩包"
+          }
+        }
+      }
+    },
+    "Whole Archive · %lld files" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブ全体 · %lld ファイル"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整个压缩包 · %lld 个文件"
+          }
+        }
+      }
+    },
+    "Wrong Password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードが違います"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码错误"
           }
         }
       }
@@ -6157,22 +7357,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这之后的进度会被替换，未存档的内容将丢失。"
-          }
-        }
-      }
-    },
-    "Put game folders directly in Documents. They’re scanned automatically when you return to the app." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゲームフォルダを Documents に直接入れてください。アプリに戻ると自動でスキャンされます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把游戏文件夹直接放入 Documents，返回 App 后会自动扫描。"
           }
         }
       }
@@ -8235,6 +9419,22 @@
         }
       }
     },
+    "You can also drop game folders and archives into Mikage in the Files app." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルアプリで、ゲームのフォルダやアーカイブを Mikage に入れることもできます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你也可以在“文件”App 中把游戏文件夹和压缩包放进 Mikage。"
+          }
+        }
+      }
+    },
     "You can also manage game files and saves directly in the Files app under Mikage Next." : {
       "localizations" : {
         "ja" : {
@@ -8395,34 +9595,18 @@
         }
       }
     },
-    "ZIP & Wi-Fi Import" : {
+    "ZIP, RAR or 7z" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ZIP・Wi-Fi から読み込む"
+            "value" : "ZIP、RAR、7z"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ZIP 与 Wi-Fi 导入"
-          }
-        }
-      }
-    },
-    "ZIP extraction and Wi-Fi upload aren’t available yet. You can also put game folders directly in Documents." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ZIP の展開と Wi-Fi アップロードにはまだ対応していません。ゲームフォルダを Documents に直接入れることもできます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ZIP 解压与局域网上传尚未接入。也可以直接把游戏文件夹放入 Documents。"
+            "value" : "ZIP、RAR 或 7z"
           }
         }
       }
@@ -8441,6 +9625,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@”已存在于 Documents 中，请先重命名文件夹。"
+          }
+        }
+      }
+    },
+    "“%@” is already in your library." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」はすでにライブラリにあります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "资料库中已有“%@”。"
+          }
+        }
+      }
+    },
+    "“%@” is damaged at %@. Nothing was added. Download it again and retry." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」は %2$@ で壊れています。何も追加されませんでした。もう一度ダウンロードしてやり直してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@”在 %2$@ 处已损坏，未添加任何内容。请重新下载后再试。"
+          }
+        }
+      }
+    },
+    "“%@” is damaged. Nothing was added. Download it again and retry." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」は壊れています。何も追加されませんでした。もう一度ダウンロードしてやり直してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”已损坏，未添加任何内容。请重新下载后再试。"
+          }
+        }
+      }
+    },
+    "“%@” is protected. Enter the password from where you got it." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」は保護されています。入手元で案内されたパスワードを入力してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”受密码保护。请输入来源处提供的密码。"
           }
         }
       }
@@ -9453,22 +10701,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ゲームフォルダを入れるだけ"
-          }
-        }
-      }
-    },
-    "Copy a game’s folder into Mikage in the Files app. It shows up the next time you open the app." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在“文件” App 中把游戏文件夹拷贝到 Mikage，下次打开 App 时就会出现。"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイル App でゲームのフォルダを Mikage にコピーすると、次に App を開いたときに表示されます。"
           }
         }
       }
@@ -10817,6 +12049,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "故障排查"
+          }
+        }
+      }
+    },
+    "“%@” wasn’t found next to the other parts. Put every part (.part1.rar, .z01, .7z.001 …) in the same folder, then pick the first one." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "他のパートの隣に「%@」が見つかりません。すべてのパート（.part1.rar、.z01、.7z.001 …）を同じフォルダに入れて、最初のパートを選んでください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在其他分卷旁边找不到“%@”。请把所有分卷（.part1.rar、.z01、.7z.001 …）放在同一个文件夹，然后选择第一个。"
+          }
+        }
+      }
+    },
+    "“%@”: %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」：%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@”：%2$@"
           }
         }
       }

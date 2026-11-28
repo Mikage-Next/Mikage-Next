@@ -25,6 +25,8 @@ struct NewGamesToast: Identifiable, Equatable {
     let id = UUID()
     let gameIDs: [UUID]
     let names: [String]
+    /// ZIP, RAR and 7z archives found in Documents, extracted on Import.
+    var archives: [URL] = []
     var phase: Phase = .found
     var outcomes: [UUID: Outcome] = [:]
 }
@@ -38,16 +40,30 @@ struct ImportReview: Identifiable, Equatable {
 extension AppModel {
     /// Offers the games a scan added, unless they came from Mikage's own
     /// import (which opens the match sheet) or ship with the app.
-    func announceNewGames(_ added: [GameRecord]) {
+    func announceNewGames(_ added: [GameRecord], archives: [URL] = []) {
         let games = added.filter { $0.link == nil }
-        guard !games.isEmpty else { return }
-        AppDiagnostics.shared.event("library", "newGames.found", ["count": String(games.count)])
-        newGamesToast = NewGamesToast(gameIDs: games.map(\.id), names: games.map(\.title))
+        guard !games.isEmpty || !archives.isEmpty else { return }
+        AppDiagnostics.shared.event("library", "newGames.found", ["count": String(games.count), "archives": String(archives.count)])
+        newGamesToast = NewGamesToast(gameIDs: games.map(\.id), names: games.map(\.title), archives: archives)
+    }
+
+    /// Closes the toast. Archives it offered are not offered again.
+    func dismissNewGamesToast() {
+        if let toast = newGamesToast, toast.phase == .found {
+            for archive in toast.archives { try? repository.ignoreArchive(archive) }
+        }
+        newGamesToast = nil
     }
 
     /// Opens the review sheet for the games the toast found.
     func reviewNewGames() {
         guard let current = newGamesToast, current.phase == .found else { return }
+        // Archives are extracted first; the review then covers every game.
+        if !current.archives.isEmpty {
+            newGamesToast = nil
+            beginArchiveImport(current.archives, fromFiles: false, autoDefaults: true, reviewAlso: current.gameIDs.filter { record($0) != nil })
+            return
+        }
         let present = current.gameIDs.filter { record($0) != nil }
         guard !present.isEmpty else {
             newGamesToast = nil
@@ -95,11 +111,14 @@ struct NewGamesToastView: View {
 
     private var games: [GameRecord] { toast.gameIDs.compactMap { model.record($0) } }
 
+    /// Games and archives together, for the counts in the title.
+    private var foundCount: Int { toast.gameIDs.count + toast.archives.count }
+
     private var title: String {
         let count = toast.gameIDs.count
         switch toast.phase {
         case .found:
-            return String(localized: "Found \(count) new games")
+            return String(localized: "Found \(foundCount) new games")
         case .importing(let done):
             return String(localized: "Adding \(min(done + 1, count)) of \(count)…")
         case .imported:
@@ -110,9 +129,15 @@ struct NewGamesToastView: View {
     private var detail: String {
         switch toast.phase {
         case .found:
-            return expanded
-                ? String(localized: "From the Files app")
-                : toast.names.formatted(.list(type: .and, width: .narrow))
+            let toExtract = toast.archives.count
+            if expanded {
+                return toExtract == 0
+                    ? String(localized: "From the Files app")
+                    : String(localized: "From the Files app · \(toExtract) to extract")
+            }
+            let names = toast.names + toast.archives.map(\.lastPathComponent)
+            let list = names.formatted(.list(type: .and, width: .narrow))
+            return toExtract == 0 ? list : String(localized: "\(list) · \(toExtract) to extract")
         case .importing:
             return String(localized: "Fetching covers from Bangumi and VNDB")
         case .imported(let matched):
@@ -137,7 +162,12 @@ struct NewGamesToastView: View {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { expanded.toggle() }
                 } label: {
                     HStack(spacing: 12) {
-                        thumbnails
+                        if games.isEmpty {
+                            ArchiveGlyphTile(size: 40, radius: 10)
+                                .frame(width: 66, height: 46, alignment: .leading)
+                        } else {
+                            thumbnails
+                        }
                         VStack(alignment: .leading, spacing: 2) {
                             Text(title)
                                 .font(.subheadline.weight(.semibold))
@@ -169,7 +199,7 @@ struct NewGamesToastView: View {
                     .buttonStyle(.plain)
                 }
                 Button {
-                    withAnimation(.easeInOut(duration: 0.25)) { model.newGamesToast = nil }
+                    withAnimation(.easeInOut(duration: 0.25)) { model.dismissNewGamesToast() }
                 } label: {
                     Image(systemName: "xmark")
                         .font(.footnote.weight(.bold))
@@ -200,6 +230,9 @@ struct NewGamesToastView: View {
                 VStack(spacing: 0) {
                     ForEach(games) { game in
                         gameRow(game)
+                    }
+                    ForEach(toast.archives, id: \.self) { archive in
+                        archiveRow(archive)
                     }
                 }
                 .padding(.vertical, 6)
@@ -242,12 +275,40 @@ struct NewGamesToastView: View {
         .accessibilityElement(children: .combine)
     }
 
+    private func archiveRow(_ archive: URL) -> some View {
+        let format = ArchiveFormat(fileName: archive.lastPathComponent)
+        let size = model.repository.archiveByteCount(model.repository.archiveParts(for: archive))
+        return HStack(spacing: 12) {
+            ArchiveGlyphTile(size: 36, radius: 9)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: archive.lastPathComponent)
+                    .font(.subheadline.weight(.semibold).monospaced())
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Text(verbatim: "\(format?.displayName ?? "") · \(AppModel.size(size))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+            Text(verbatim: format?.displayName ?? "")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+    }
+
     @ViewBuilder
     private func state(for game: GameRecord) -> some View {
         let index = toast.gameIDs.firstIndex(of: game.id) ?? 0
         switch (toast.phase, toast.outcomes[game.id]) {
         case (.found, _):
-            Text("New").foregroundStyle(.tint)
+            if toast.archives.isEmpty {
+                Text("New").foregroundStyle(.tint)
+            } else {
+                Text("Folder").foregroundStyle(.secondary)
+            }
         case (_, .matched?):
             Text("Matched").foregroundStyle(Self.green)
         case (_, .generated?):
