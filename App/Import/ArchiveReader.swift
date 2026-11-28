@@ -23,7 +23,7 @@ enum ArchiveReaderError: LocalizedError {
         case .encryptedUnsupported:
             return String(localized: "Password-protected RAR and 7z archives can’t be opened yet. Extract it on a computer and copy the folder in.")
         case .missingPart(let name):
-            return String(localized: "“\(name)” wasn’t found next to the other parts. Put every part (.part1.rar, .z01, .7z.001 …) in the same folder, then pick the first one.")
+            return String(localized: "“\(name)” is missing or incomplete. Put every part (.part1.rar, .z01, .7z.001 …) in Mikage’s folder, or select all of them together when you pick the archive.")
         case .damaged(let entry):
             if let entry {
                 return String(localized: "The archive is damaged at \(entry). Nothing was added. Download it again and retry.")
@@ -298,7 +298,10 @@ private final class OpenArchive {
         // Volumes that are missing or out of order surface as data errors.
         let volumeErrors = ["bad rar file data", "truncated rar5", "subsequent volume", "too small block", "truncated rar"]
         if volumeErrors.contains(where: message.contains) {
-            return looksSplit ? .missingPart(parts[0].lastPathComponent) : .damaged(entry: entry)
+            guard looksSplit else { return .damaged(entry: entry) }
+            // The data ran past the last part there is: the next one is
+            // missing (or a part is cut short, which shows the same way).
+            return .missingPart(ArchiveParts.nextPart(after: parts) ?? parts[parts.count - 1].lastPathComponent)
         }
         if message.contains("unrecognized archive format") || message.contains("unsupported") {
             return .unsupported

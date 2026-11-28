@@ -12053,22 +12053,6 @@
         }
       }
     },
-    "“%@” wasn’t found next to the other parts. Put every part (.part1.rar, .z01, .7z.001 …) in the same folder, then pick the first one." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "他のパートの隣に「%@」が見つかりません。すべてのパート（.part1.rar、.z01、.7z.001 …）を同じフォルダに入れて、最初のパートを選んでください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在其他分卷旁边找不到“%@”。请把所有分卷（.part1.rar、.z01、.7z.001 …）放在同一个文件夹，然后选择第一个。"
-          }
-        }
-      }
-    },
     "“%@”: %@" : {
       "localizations" : {
         "ja" : {
@@ -12081,6 +12065,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%1$@”：%2$@"
+          }
+        }
+      }
+    },
+    "“%@” is missing or incomplete. Put every part (.part1.rar, .z01, .7z.001 …) in Mikage’s folder, or select all of them together when you pick the archive." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」が見つからないか、不完全です。すべてのパート（.part1.rar、.z01、.7z.001 など）を Mikage のフォルダに入れるか、アーカイブを選ぶときにまとめて選択してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”缺失或不完整。请把所有分卷（.part1.rar、.z01、.7z.001 等）放进 Mikage 的文件夹，或在选择压缩包时一起选中全部分卷。"
+          }
+        }
+      }
+    },
+    "%@ · %lld files · inside %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld ファイル · %3$@ 内"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld 个文件 · 位于 %3$@ 内"
+          }
+        }
+      }
+    },
+    "On by default. Deletes “%@” from Mikage’s folder once everything in it is imported." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルトでオン。中身がすべて読み込まれたら、Mikage のフォルダから「%@」を削除します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认开启。其中内容全部导入后，从 Mikage 的文件夹中删除“%@”。"
           }
         }
       }

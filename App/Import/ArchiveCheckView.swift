@@ -110,6 +110,9 @@ struct ArchiveCheckView: View {
     private func headerDetail(_ check: ArchiveCheck) -> String {
         let size = AppModel.size(check.listing.archiveSize)
         let files = check.layout.files(under: [])
+        if let container = check.container {
+            return String(localized: "\(size) · \(files) files · inside \(container)")
+        }
         return check.inDocuments
             ? String(localized: "\(size) · \(files) files · in Mikage’s folder")
             : String(localized: "\(size) · \(files) files · from Files")
@@ -273,7 +276,7 @@ struct ArchiveCheckView: View {
                 .font(.subheadline)
                 spaceBar(check)
             }
-            if check.inDocuments {
+            if check.offersDelete {
                 Toggle("Delete Archive After Import", isOn: Binding(
                     get: { model.archiveCheck?.deleteAfter ?? true },
                     set: { model.archiveCheck?.deleteAfter = $0 }
@@ -282,7 +285,9 @@ struct ArchiveCheckView: View {
         } header: {
             Text("Space")
         } footer: {
-            if check.inDocuments {
+            if let container = check.container, check.offersDelete {
+                Text("On by default. Deletes “\(container)” from Mikage’s folder once everything in it is imported.")
+            } else if check.offersDelete {
                 Text("On by default. Shown only for archives in Mikage’s own folder; an archive picked from elsewhere is read in place and always left as it is.")
             }
         }

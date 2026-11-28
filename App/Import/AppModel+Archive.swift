@@ -17,8 +17,31 @@ struct ArchiveJob {
     /// Skip the check sheet when everything is clear (archives found in
     /// Documents and imported from the new-games toast).
     var autoDefaults: Bool
+    /// How many archives this one is packed in.
+    var depth = 0
+    /// The archive this one was packed in, for the check sheet.
+    var container: String?
+    /// Whether the check sheet offers Delete Archive After Import: for an
+    /// archive in Mikage's folder, or one packed in such an archive (the
+    /// outer archive is then the one deleted).
+    var offersDelete = false
+    /// The outer archive's password, tried first on an archive packed in it.
+    var passwordHint: String?
 
     var first: URL { parts[0] }
+}
+
+/// How one archive's import ended.
+enum ArchiveJobOutcome {
+    /// Games were added; `deleteAfter` is the sheet's Delete Archive After
+    /// Import.
+    case imported(deleteAfter: Bool)
+    case skipped
+
+    var wasImported: Bool {
+        if case .imported = self { return true }
+        return false
+    }
 }
 
 /// What the Import Archive sheet shows and the player can change.
@@ -42,6 +65,9 @@ struct ArchiveCheck: Identifiable {
     var engineChoice: EngineID?
     var deleteAfter = true
     var freeBytes: Int64
+    /// The archive this one was packed in.
+    var container: String?
+    var offersDelete = false
 
     var archiveURL: URL { parts[0] }
     var resolvedEncoding: ArchiveNameEncoding { encoding == .automatic ? detectedEncoding : encoding }
@@ -167,6 +193,8 @@ final class ArchiveImportState {
     var reviewFirst: [UUID] = []
 
     var relay: ExtractionRelay?
+    /// Stop Extracting was confirmed while this archive ran.
+    var stopRequested = false
     /// The iOS 26 `ExtractionBackgroundTask`, if one is running.
     var background: AnyObject?
     var legacyTask: BackgroundTaskBox?
@@ -212,7 +240,7 @@ extension AppModel {
         }
         let busy = archiveState.busyPaths
         let jobs = sets.filter { !busy.contains($0.parts[0].standardizedFileURL.path) }.map {
-            ArchiveJob(parts: $0.parts, scoped: fromFiles ? urls : [], inDocuments: $0.inDocuments, autoDefaults: autoDefaults)
+            ArchiveJob(parts: $0.parts, scoped: fromFiles ? urls : [], inDocuments: $0.inDocuments, autoDefaults: autoDefaults, offersDelete: $0.inDocuments)
         }
         guard !jobs.isEmpty else {
             if sets.isEmpty { alert = String(localized: "Choose a ZIP, RAR or 7z archive.") }
@@ -245,6 +273,7 @@ extension AppModel {
         while !state.queue.isEmpty {
             let job = state.queue.removeFirst()
             state.current = job
+            state.stopRequested = false
             await process(job)
             state.current = nil
             state.finishedCount += 1
@@ -256,7 +285,11 @@ extension AppModel {
 
     // MARK: One archive
 
-    private func process(_ job: ArchiveJob) async {
+    /// Archives packed in archives are opened this many levels deep.
+    private static let maxDepth = 2
+
+    @discardableResult
+    private func process(_ job: ArchiveJob) async -> ArchiveJobOutcome {
         let scoped = job.scoped.filter { $0.startAccessingSecurityScopedResource() }
         defer { for url in scoped { url.stopAccessingSecurityScopedResource() } }
         let name = job.first.lastPathComponent
@@ -264,26 +297,86 @@ extension AppModel {
         if let missing = ArchiveParts.missingPart(in: job.parts) {
             AppDiagnostics.shared.event("library", "archive.missingPart", ["archive": name])
             await showArchiveAlert(failureAlert(ArchiveReaderError.missingPart(missing), archiveName: name))
-            return
+            return .skipped
         }
-        guard var check = await prepareCheck(job) else { return }
+        guard var check = await prepareCheck(job) else { return .skipped }
+        if job.depth < Self.maxDepth,
+           check.candidates.allSatisfy({ $0.engines.isEmpty }),
+           !check.layout.wrappedArchives().isEmpty {
+            return await unwrap(check, job: job)
+        }
         if !(job.autoDefaults && check.isClearCut) {
             guard let confirmed = await askCheck(check) else {
                 AppDiagnostics.shared.event("library", "archive.cancelled", ["archive": name])
                 // An archive the player turned down is not offered again.
                 if job.inDocuments { try? repository.ignoreArchive(job.first) }
-                return
+                return .skipped
             }
             check = confirmed
         }
-        await extract(check)
+        return await extract(check)
+    }
+
+    /// An archive that only holds other archives (a ZIP with the parts of a
+    /// RAR in it, say): it is extracted whole into a staging folder, each
+    /// archive found there is imported as if it had been picked, and the
+    /// staging folder is removed. The outer archive, when it is in Mikage's
+    /// folder, is deleted only when every inner one was imported with Delete
+    /// Archive After Import left on.
+    private func unwrap(_ check: ArchiveCheck, job: ArchiveJob) async -> ArchiveJobOutcome {
+        let name = job.first.lastPathComponent
+        var whole = check
+        whole.candidates = [ArchiveRootCandidate(
+            path: [], engines: [],
+            byteCount: check.layout.bytes(under: []), fileCount: check.layout.files(under: [])
+        )]
+        whole.candidateIndex = 0
+        AppDiagnostics.shared.event("library", "archive.unwrap", ["archive": name, "depth": String(job.depth)])
+        guard let result = await extractToStaging(whole) else { return .skipped }
+        let (extracted, staging) = result
+        endExtractionPresentation(success: true)
+        defer { try? FileManager.default.removeItem(at: staging) }
+
+        let sets = await Task.detached(priority: .userInitiated) {
+            ArchiveParts.archiveSets(in: staging)
+        }.value
+        var outcomes: [ArchiveJobOutcome] = []
+        for parts in sets {
+            // Stop Extracting on one of them stops the rest too.
+            if archiveState.stopRequested { break }
+            let inner = ArchiveJob(
+                parts: parts,
+                scoped: [],
+                inDocuments: false,
+                autoDefaults: job.autoDefaults,
+                depth: job.depth + 1,
+                container: name,
+                offersDelete: job.offersDelete,
+                passwordHint: extracted.password
+            )
+            outcomes.append(await process(inner))
+        }
+
+        let allDeleted = !outcomes.isEmpty && outcomes.allSatisfy {
+            if case .imported(deleteAfter: true) = $0 { return true }
+            return false
+        }
+        if job.inDocuments {
+            if allDeleted {
+                for part in job.parts { try? FileManager.default.removeItem(at: part) }
+            } else {
+                try? repository.ignoreArchive(job.first)
+            }
+        }
+        if allDeleted { return .imported(deleteAfter: true) }
+        return outcomes.contains(where: \.wasImported) ? .imported(deleteAfter: false) : .skipped
     }
 
     /// Reads the file list, asking for a password when a ZIP needs one.
     private func prepareCheck(_ job: ArchiveJob) async -> ArchiveCheck? {
         let name = job.first.lastPathComponent
         let repository = self.repository
-        var password: String?
+        var password = job.passwordHint
         var wrong = false
         while true {
             archiveReading = name
@@ -307,7 +400,9 @@ extension AppModel {
             case .failure(let error):
                 switch error as? ArchiveReaderError {
                 case .wrongPassword?:
-                    wrong = true
+                    // The outer archive's password not fitting isn't the
+                    // player's mistake.
+                    wrong = attempt != nil && attempt != job.passwordHint
                 case .needsPassword?:
                     wrong = false
                 default:
@@ -330,7 +425,7 @@ extension AppModel {
         let layout = ArchiveLayout(listing: listing, encoding: detected)
         let candidates = layout.gameRootCandidates()
         let first = candidates[0]
-        return ArchiveCheck(
+        var check = ArchiveCheck(
             parts: job.parts,
             inDocuments: job.inDocuments,
             listing: listing,
@@ -341,6 +436,9 @@ extension AppModel {
             folderName: repository.uniqueFolderName(layout.suggestedFolderName(root: first.path, archiveURL: job.first)),
             freeBytes: ArchiveReader.freeSpace(at: repository.gamesRoot) ?? Int64.max
         )
+        check.container = job.container
+        check.offersDelete = job.offersDelete
+        return check
     }
 
     // MARK: Check sheet
@@ -530,17 +628,32 @@ extension AppModel {
     // MARK: Extracting
 
     private enum ExtractionOutcome {
-        case done
+        case done(URL)
         case stopped
         case retry(ArchiveCheck)
     }
 
-    private func extract(_ check: ArchiveCheck) async {
+    /// Extracts the game and adds it to the library.
+    private func extract(_ check: ArchiveCheck) async -> ArchiveJobOutcome {
+        guard let result = await extractToStaging(check) else { return .skipped }
+        let (extracted, staging) = result
+        let added = await finish(extracted, staging: staging)
+        endExtractionPresentation(success: added)
+        return added ? .imported(deleteAfter: extracted.deleteAfter) : .skipped
+    }
+
+    /// Extracts the check's game folder into a new staging folder, asking
+    /// again for a password or offering to retry on the way. Returns the
+    /// check as it ended up (with the password that worked) and the folder,
+    /// with the progress still showing; nil when it stopped.
+    private func extractToStaging(_ check: ArchiveCheck) async -> (ArchiveCheck, URL)? {
         var check = check
         while true {
             switch await extractOnce(check) {
-            case .done, .stopped:
-                return
+            case .done(let staging):
+                return (check, staging)
+            case .stopped:
+                return nil
             case .retry(let updated):
                 check = updated
             }
@@ -593,9 +706,7 @@ extension AppModel {
 
         switch result {
         case .success:
-            let added = await finish(check, staging: staging)
-            endExtractionPresentation(success: added)
-            return .done
+            return .done(staging)
         case .failure(let error):
             try? FileManager.default.removeItem(at: staging)
             endExtractionPresentation(success: false)
@@ -620,8 +731,9 @@ extension AppModel {
     private func finish(_ check: ArchiveCheck, staging: URL) async -> Bool {
         let name = check.archiveURL.lastPathComponent
         let repository = self.repository
+        // A game a folder deeper than expected is lifted up first.
         let detected = (try? await Task.detached(priority: .userInitiated) {
-            try GameScanner.detectEngines(in: staging)
+            try ArchiveStaging.liftGame(in: staging)
         }.value) ?? []
 
         var engine: EngineID?
@@ -733,6 +845,7 @@ extension AppModel {
     func stopExtraction() {
         AppDiagnostics.shared.event("library", "archive.extract.stopped")
         archiveState.queue.removeAll()
+        archiveState.stopRequested = true
         archiveState.relay?.cancel()
     }
 

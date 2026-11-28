@@ -284,13 +284,24 @@ public struct ArchiveLayout: Sendable {
         items.filter { isUnder($0, root) && !$0.entry.isDirectory }.count
     }
 
-    /// Where a game may start: the archive root and every folder up to three
-    /// levels down in which an engine recognizes a game, shallowest first.
-    /// A folder inside another candidate is left out. When nothing is
-    /// recognized the single top folder (or else the whole archive) is the
-    /// one candidate, with no engine.
+    /// Where a game may start: the archive root and every folder up to
+    /// `searchDepth` levels down in which an engine recognizes a game,
+    /// shallowest first. Only folders that hold a file of their own (or a
+    /// `game` folder, as Ren'Py has) are looked at, since a game's own folder
+    /// always does. A folder inside another candidate is left out. When
+    /// nothing is recognized, folders that only wrap one other folder are
+    /// stepped into, so `Game v1.0/Game/` ends at `Game`, with no engine.
     public func gameRootCandidates() -> [ArchiveRootCandidate] {
-        let folders = directories.filter { $0.count <= 3 }.sorted(by: Self.isOrderedBefore)
+        var holdsFiles = Set<[String]>()
+        for item in items where item.components.count > 1 {
+            let parent = Array(item.components.dropLast())
+            if !item.entry.isDirectory || item.components.last?.lowercased() == "game" {
+                holdsFiles.insert(parent)
+            }
+        }
+        let folders = directories
+            .filter { $0.count <= Self.searchDepth && holdsFiles.contains($0) }
+            .sorted(by: Self.isOrderedBefore)
         var roots: [[String]] = [[]]
         roots += folders.prefix(Self.probeLimit)
         var candidates: [ArchiveRootCandidate] = []
@@ -302,17 +313,52 @@ public struct ArchiveLayout: Sendable {
             candidates.append(candidate(root, engines: engines))
         }
         if !candidates.isEmpty { return candidates }
-
-        let topLevel = Set(items.map { $0.components[0] })
-        let hasTopFile = items.contains { $0.components.count == 1 && !$0.entry.isDirectory }
-        if topLevel.count == 1, !hasTopFile, let only = topLevel.first {
-            return [candidate([only], engines: [])]
-        }
-        return [candidate([], engines: [])]
+        return [candidate(wrappedFolder(), engines: [])]
     }
 
+    /// The deepest folder reached from the archive root by stepping into the
+    /// only folder while nothing but notes (`readme.txt` and the like) sits
+    /// beside it.
+    public func wrappedFolder() -> [String] {
+        var root: [String] = []
+        while root.count < Self.searchDepth {
+            let inside = children(of: root)
+            let folders = inside.filter(\.isDirectory)
+            guard folders.count == 1,
+                  inside.allSatisfy({ $0.isDirectory || Self.isNote($0.name) }) else { break }
+            root.append(folders[0].name)
+        }
+        return root
+    }
+
+    /// Files people put beside a game in an archive that are not part of it.
+    static func isNote(_ name: String) -> Bool {
+        let ext = (name as NSString).pathExtension.lowercased()
+        return ["txt", "md", "url", "webloc", "htm", "html", "nfo", "pdf", "rtf"].contains(ext)
+    }
+
+    /// The archives inside this archive (each split set once, by its files'
+    /// paths), when that is all it holds besides notes: an archive packed in
+    /// an archive, such as a `.zip` holding `game.part1.rar` and
+    /// `game.part2.rar`. Empty for anything else.
+    public func wrappedArchives() -> [[String]] {
+        var archives: [[String]] = []
+        for item in items where !item.entry.isDirectory {
+            let name = item.components[item.components.count - 1]
+            if ArchiveFileName(name) != nil {
+                archives.append(item.components)
+            } else if !Self.isNote(name) {
+                return []
+            }
+        }
+        return archives
+    }
+
+    /// How many folders deep a game's folder is looked for.
+    static let searchDepth = 8
+
     /// Folders probed at most, so a huge archive stays quick to read.
-    private static let probeLimit = 300
+    private static let probeLimit = 200
 
     private func candidate(_ root: [String], engines: [EngineID]) -> ArchiveRootCandidate {
         ArchiveRootCandidate(path: root, engines: engines, byteCount: bytes(under: root), fileCount: files(under: root))
@@ -565,6 +611,85 @@ public enum ArchiveParts {
         default:
             return nil
         }
+    }
+}
+
+extension ArchiveParts {
+    /// The name of the part that would follow the ones in `set`, for a set
+    /// whose names say it is split (`x.part1.rar` gives `x.part2.rar`,
+    /// `x.7z.001` gives `x.7z.002`, `x.rar` with `x.r00` gives `x.r01`).
+    /// Nil for a single `.zip`, `.rar` or `.7z`, which may well be whole.
+    public static func nextPart(after set: [URL]) -> String? {
+        let names = set.compactMap { ArchiveFileName($0.lastPathComponent) }
+        guard let sample = names.first(where: { $0.number != nil }) else { return nil }
+        let highest = names.compactMap(\.number).max() ?? 0
+        switch sample.variant {
+        case "zip":
+            // `.z01` … `.zNN` come before the `.zip`, which is the last part.
+            return names.contains { $0.number == nil } ? nil : sample.volumeName(highest + 1)
+        default:
+            return sample.volumeName(highest + 1)
+        }
+    }
+
+    /// The archives in `folder` and the folders inside it, each split set
+    /// once in reading order, by path. Hidden files are skipped.
+    public static func archiveSets(in folder: URL, depth: Int = 4) -> [[URL]] {
+        let fm = FileManager.default
+        guard let walker = fm.enumerator(
+            at: folder,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]
+        ) else { return [] }
+        let base = folder.standardizedFileURL.pathComponents.count
+        var files: [URL] = []
+        for case let url as URL in walker {
+            if url.standardizedFileURL.pathComponents.count - base >= depth { walker.skipDescendants() }
+            guard (try? url.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true,
+                  ArchiveFileName(url.lastPathComponent) != nil else { continue }
+            files.append(url)
+        }
+        files.sort { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
+        return group(files)
+    }
+}
+
+/// Fixing up a folder after extraction.
+public enum ArchiveStaging {
+    /// The engines of the game in `staging`. When the game sits deeper, in
+    /// a folder within up to `depth` levels (an archive whose game folder
+    /// wasn't recognized before extracting, or one folder in another),
+    /// that folder takes the place of `staging`. Empty when no game is found
+    /// at all; `staging` is then left as it is.
+    public static func liftGame(in staging: URL, depth: Int = 4) throws -> [EngineID] {
+        let found = try GameScanner.detectEngines(in: staging)
+        if !found.isEmpty { return found }
+        let fm = FileManager.default
+        var level = [staging]
+        for _ in 0..<depth {
+            var next: [URL] = []
+            for folder in level {
+                let children = (try? fm.contentsOfDirectory(
+                    at: folder, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles]
+                )) ?? []
+                let subfolders = children
+                    .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }
+                    .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+                for subfolder in subfolders {
+                    let engines = try GameScanner.detectEngines(in: subfolder)
+                    guard !engines.isEmpty else { continue }
+                    let parked = staging.deletingLastPathComponent()
+                        .appendingPathComponent(staging.lastPathComponent + "-lift", isDirectory: true)
+                    try fm.moveItem(at: subfolder, to: parked)
+                    try fm.removeItem(at: staging)
+                    try fm.moveItem(at: parked, to: staging)
+                    return engines
+                }
+                next += subfolders
+            }
+            level = next
+        }
+        return []
     }
 }
 

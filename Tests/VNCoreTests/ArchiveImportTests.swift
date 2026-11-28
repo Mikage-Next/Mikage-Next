@@ -161,12 +161,57 @@ final class ArchiveImportTests: XCTestCase {
 
     func testUnrecognizedArchiveWithFilesAtTheRootUsesTheWholeArchive() throws {
         let layout = ArchiveLayout(
-            listing: listing([try zipEntry("Mystery/a.bin"), try zipEntry("notes.txt")]),
+            listing: listing([try zipEntry("Mystery/a.bin"), try zipEntry("setup.bin")]),
             encoding: .automatic
         )
         let candidates = layout.gameRootCandidates()
         XCTAssertEqual(candidates.map(\.path), [[]])
         XCTAssertEqual(candidates[0].engines, [])
+    }
+
+    func testFindsAGameManyFoldersDown() throws {
+        let layout = ArchiveLayout(
+            listing: listing([
+                unicodeEntry("Release/v1.02/PC/JP/Game/Scene.pck"),
+                unicodeEntry("Release/v1.02/PC/JP/Game/Gameexe.dat"),
+                unicodeEntry("Release/readme.txt")
+            ], format: .sevenZip),
+            encoding: .automatic
+        )
+        XCTAssertEqual(layout.gameRootCandidates().map(\.path), [["Release", "v1.02", "PC", "JP", "Game"]])
+    }
+
+    func testUnrecognizedArchiveStepsIntoWrappingFolders() throws {
+        let layout = ArchiveLayout(
+            listing: listing([
+                try zipEntry("Game v1.0/Game/a.bin"),
+                try zipEntry("Game v1.0/Game/sub/b.bin"),
+                try zipEntry("Game v1.0/readme.txt"),
+                try zipEntry("info.url")
+            ]),
+            encoding: .automatic
+        )
+        XCTAssertEqual(layout.gameRootCandidates().map(\.path), [["Game v1.0", "Game"]])
+    }
+
+    func testArchiveHoldingOnlyArchives() throws {
+        let wrapper = ArchiveLayout(
+            listing: listing([
+                try zipEntry("Game/game.part1.rar"),
+                try zipEntry("Game/game.part2.rar"),
+                try zipEntry("Game/", directory: true),
+                try zipEntry("readme.txt")
+            ]),
+            encoding: .automatic
+        )
+        XCTAssertEqual(wrapper.wrappedArchives(), [["Game", "game.part1.rar"], ["Game", "game.part2.rar"]])
+
+        // A game that ships a patch archive is not a wrapper.
+        let game = ArchiveLayout(
+            listing: listing([try zipEntry("Game/patch.zip"), try zipEntry("Game/Game.exe")]),
+            encoding: .automatic
+        )
+        XCTAssertEqual(game.wrappedArchives(), [])
     }
 
     func testIgnorableFilesAndLinksAreNotPartOfTheLayout() throws {
@@ -262,7 +307,52 @@ final class ArchiveImportTests: XCTestCase {
         XCTAssertNil(ArchiveParts.missingPart(in: urls(["e.7z"])))
     }
 
+    func testNextPartIsNamedFromTheSet() {
+        func urls(_ names: [String]) -> [URL] { names.map { URL(fileURLWithPath: "/tmp/\($0)") } }
+        XCTAssertEqual(ArchiveParts.nextPart(after: urls(["a.part1.rar"])), "a.part2.rar")
+        XCTAssertEqual(ArchiveParts.nextPart(after: urls(["a.part01.rar", "a.part02.rar"])), "a.part03.rar")
+        XCTAssertEqual(ArchiveParts.nextPart(after: urls(["b.7z.001"])), "b.7z.002")
+        XCTAssertEqual(ArchiveParts.nextPart(after: urls(["c.rar", "c.r00"])), "c.r01")
+        XCTAssertEqual(ArchiveParts.nextPart(after: urls(["d.z01"])), "d.z02")
+        XCTAssertNil(ArchiveParts.nextPart(after: urls(["d.z01", "d.zip"])))
+        XCTAssertNil(ArchiveParts.nextPart(after: urls(["e.zip"])))
+        XCTAssertNil(ArchiveParts.nextPart(after: urls(["f.rar"])))
+    }
+
+    func testArchiveSetsAreFoundInSubfolders() throws {
+        let folder = sandbox.appendingPathComponent("unpacked", isDirectory: true)
+        let inner = folder.appendingPathComponent("Game", isDirectory: true)
+        try FileManager.default.createDirectory(at: inner, withIntermediateDirectories: true)
+        for name in ["game.part2.rar", "game.part1.rar", "readme.txt"] {
+            try Data("x".utf8).write(to: inner.appendingPathComponent(name))
+        }
+        try Data("x".utf8).write(to: folder.appendingPathComponent("bonus.7z"))
+        let sets = ArchiveParts.archiveSets(in: folder).map { $0.map(\.lastPathComponent) }
+        XCTAssertEqual(sets, [["bonus.7z"], ["game.part1.rar", "game.part2.rar"]])
+    }
+
     // MARK: Staging
+
+    func testLiftsAGameFromInnerFolders() throws {
+        let staging = try repository.makeStagingDirectory()
+        let deep = staging.appendingPathComponent("Game v1.0/Game", isDirectory: true)
+        try FileManager.default.createDirectory(at: deep, withIntermediateDirectories: true)
+        try Data().write(to: deep.appendingPathComponent("Scene.pck"))
+        try Data().write(to: deep.appendingPathComponent("Gameexe.dat"))
+        try Data("x".utf8).write(to: staging.appendingPathComponent("Game v1.0/readme.txt"))
+
+        XCTAssertEqual(try ArchiveStaging.liftGame(in: staging), [.siglus])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: staging.appendingPathComponent("Scene.pck").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: staging.appendingPathComponent("Game v1.0").path))
+    }
+
+    func testLiftLeavesAnUnknownFolderAlone() throws {
+        let staging = try repository.makeStagingDirectory()
+        try Data("x".utf8).write(to: staging.appendingPathComponent("a.bin"))
+        XCTAssertEqual(try ArchiveStaging.liftGame(in: staging), [])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: staging.appendingPathComponent("a.bin").path))
+    }
+
 
     func testAdoptingAStagedFolder() throws {
         let staging = try repository.makeStagingDirectory()
